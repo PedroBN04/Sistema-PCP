@@ -1,0 +1,42 @@
+# ── Python ──────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Ambiente virtual
+venv/
+.venv/
+env/
+.env/
+
+# ── Banco de dados local (gerado em runtime) ────────
+backend/db.json
+
+# ── Variáveis de ambiente / segredos ────────────────
+.env
+.env.*
+*.env
+secrets.json
+
+# ── Sistemas operacionais ────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+desktop.ini
+
+# ── Editores e IDEs ──────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Logs ─────────────────────────────────────────────
+*.log
+logs/

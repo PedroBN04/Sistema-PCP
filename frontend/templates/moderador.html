@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Moderador — PCP Simulador</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+/* ── LAYOUT MODERADOR ── */
+.mod-layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 24px 0; position: sticky; top: 60px; height: calc(100vh - 60px);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.sidebar-section { padding: 0 16px 8px; }
+.sidebar-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--text3); padding: 14px 12px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-sm); cursor: pointer;
+  font-size: 13px; font-weight: 500; color: var(--text2);
+  transition: all .15s; border: none; background: none;
+  width: 100%; text-align: left; font-family: var(--font-body);
+}
+.nav-item:hover  { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--blue-dim); color: var(--blue); font-weight: 600; }
+.nav-item .ni-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-status {
+  margin-top: auto; padding: 16px;
+  border-top: 1px solid var(--border);
+}
+.status-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: var(--r-sm);
+  background: var(--surface2); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 600;
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.red   { background: var(--red); }
+.status-dot.amber { background: var(--amber); animation: pulse 2s infinite; }
+
+/* Main */
+.mod-main { padding: 32px; }
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-family: var(--font-head); font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.page-header p  { font-size: 14px; color: var(--text2); }
+
+/* Login gate */
+.login-gate {
+  max-width: 420px; margin: 80px auto; text-align: center;
+}
+.login-gate .lock-icon { font-size: 48px; margin-bottom: 20px; display: block; }
+.login-gate h2 { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.login-gate p  { color: var(--text2); font-size: 14px; margin-bottom: 28px; }
+
+/* Demanda preview lado a lado */
+.demand-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+/* Equipes table actions */
+.eq-actions { display: flex; gap: 6px; }
+
+@media (max-width: 900px) {
+  .mod-layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 12px; }
+  .sidebar-label { display: none; }
+  .sidebar-status { margin-top: 0; border-top: none; padding: 0; }
+  .demand-layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="/">
+      <div class="logo-badge">PCP</div>
+      <div><div class="logo-name">PCP Simulador</div><div class="logo-sub">Painel do Moderador</div></div>
+    </a>
+    <div id="topbar-status" class="topbar-pill">—</div>
+  </div>
+</nav>
+
+<!-- LOGIN GATE (esconde tudo) -->
+<div id="login-gate-wrap" class="container">
+  <div class="login-gate">
+    <span class="lock-icon">🔐</span>
+    <h2>Acesso Restrito</h2>
+    <p>Esta área é exclusiva para o moderador da sessão. Insira a senha para continuar.</p>
+    <div class="alert alert-err" id="login-err"></div>
+    <div class="form-group">
+      <label>Senha do Moderador</label>
+      <input type="password" id="login-senha" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter') doLogin()"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">
+      Entrar
+      <div class="spinner" id="login-spin"></div>
+    </button>
+  </div>
+</div>
+
+<!-- PAINEL PRINCIPAL (oculto até login) -->
+<div id="mod-panel" style="display:none">
+  <div class="mod-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-label">Configuração</div>
+      <div class="sidebar-section">
+        <button class="nav-item active" data-page="visao-geral">
+          <span class="ni-icon">📊</span> Visão Geral
+        </button>
+        <button class="nav-item" data-page="demanda">
+          <span class="ni-icon">📈</span> Demanda
+        </button>
+        <button class="nav-item" data-page="empresa">
+          <span class="ni-icon">🏭</span> Empresa
+        </button>
+      </div>
+      <div class="sidebar-label">Jogo</div>
+      <div class="sidebar-section">
+        <button class="nav-item" data-page="sessao">
+          <span class="ni-icon">🎮</span> Sessão
+        </button>
+        <button class="nav-item" data-page="equipes">
+          <span class="ni-icon">👥</span> Equipes
+        </button>
+        <button class="nav-item" data-page="ranking">
+          <span class="ni-icon">🏆</span> Ranking
+        </button>
+      </div>
+      <div class="sidebar-label">Sistema</div>
+      <div class="sidebar-section">
+        <button class="nav-item" data-page="config">
+          <span class="ni-icon">⚙️</span> Configurações
+        </button>
+      </div>
+      <div class="sidebar-status">
+        <div class="status-chip" id="sidebar-status">
+          <span class="status-dot amber"></span>
+          <span id="sidebar-status-text">Carregando…</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="mod-main">
+
+      <!-- ══ VISÃO GERAL ══ -->
+      <div id="page-visao-geral" class="page-content">
+        <div class="page-header">
+          <h1>Visão Geral</h1>
+          <p>Resumo da sessão atual e acesso rápido às ações principais</p>
+        </div>
+        <div class="stats-row" id="vg-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="section-label">Ações Rápidas</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="btn btn-success" onclick="abrirSessao()">▶ Abrir Sessão para Cadastro</button>
+              <button class="btn btn-primary" onclick="avancarRodada()">⏭ Avançar Rodada</button>
+              <button class="btn btn-ghost"   onclick="navegarPara('equipes')">👥 Ver Equipes</button>
+              <button class="btn btn-ghost"   onclick="navegarPara('ranking')">🏆 Ver Ranking</button>
+              <hr class="divider"/>
+              <button class="btn btn-danger"  onclick="resetarJogo()">🗑 Resetar Jogo</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-label">Configuração Atual</div>
+            <div id="vg-config-resumo" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </div>
+        <div class="chart-box mt-16">
+          <h4>Progresso das Equipes (planos submetidos por rodada)</h4>
+          <canvas id="chart-progresso" height="140"></canvas>
+        </div>
+      </div>
+
+      <!-- ══ DEMANDA ══ -->
+      <div id="page-demanda" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Configuração de Demanda</h1>
+          <p>Escolha como a demanda será gerada para cada equipe</p>
+        </div>
+        <div class="card mb-16">
+          <div class="section-label">Modo de Geração</div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="dem-modo" onchange="toggleDemModo()">
+              <option value="automatico">Automático — cada equipe recebe sua própria demanda gerada</option>
+              <option value="manual">Manual — moderador define os 16 valores (8 hist. + 8 futura)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Automático -->
+        <div id="dem-auto" class="card mb-16">
+          <div class="section-label">Perfil de Demanda</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tipo de Perfil</label>
+              <select id="dem-tipo" onchange="onDemTipoChange()">
+                <option value="uniforme">Uniforme</option>
+                <option value="tendencia">Tendência crescente</option>
+                <option value="ciclicidade">Ciclicidade</option>
+                <option value="tend_ciclic">Tendência + Ciclicidade</option>
+              </select>
+            </div>
+            <div class="form-group" id="dem-enfase-wrap" style="display:none">
+              <label>Ênfase</label>
+              <select id="dem-enfase">
+                <option value="equilibrio">Equilíbrio (50 / 50)</option>
+                <option value="tendencia">Mais tendência (67 / 33)</option>
+                <option value="ciclicidade">Mais ciclicidade (33 / 67)</option>
+              </select>
+            </div>
+          </div>
+          <div class="section-label mt-8">Limites Mínimo / Máximo</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Mínimo &nbsp;<span id="dem-dmin-hint" style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
+              <input type="number" id="dem-min" placeholder="Padrão do sistema"/>
+              <div class="form-hint" id="dem-rest-min"></div>
+            </div>
+            <div class="form-group">
+              <label>Máximo &nbsp;<span id="dem-dmax-hint" style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
+              <input type="number" id="dem-max" placeholder="Padrão do sistema"/>
+              <div class="form-hint" id="dem-rest-max"></div>
+            </div>
+          </div>
+          <div class="alert alert-err" id="dem-err"></div>
+        </div>
+
+        <!-- Manual -->
+        <div id="dem-manual" class="card mb-16" style="display:none">
+          <div class="section-label">Valores Manuais (todas equipes usam os mesmos)</div>
+          <p class="text-sm text-muted mb-16">Preencha 16 valores: 8 para histórico (H1–H8) e 8 para a demanda futura (F1–F8)</p>
+          <div id="dem-manual-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
+        </div>
+
+        <!-- Preview -->
+        <div class="demand-layout">
+          <div>
+            <button class="btn btn-ghost mb-16" onclick="previewDemanda()">🔄 Gerar Preview</button>
+            <div class="chart-box">
+              <h4>Preview — Demanda Gerada</h4>
+              <canvas id="chart-dem-preview" height="200"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="section-label">Lógica Aplicada</div>
+            <div id="dem-descricao" class="text-sm text-muted" style="line-height:1.8"></div>
+          </div>
+        </div>
+
+        <div class="btn-group mt-16">
+          <button class="btn btn-primary" onclick="salvarDemanda()">💾 Salvar Configuração</button>
+        </div>
+      </div>
+
+      <!-- ══ EMPRESA ══ -->
+      <div id="page-empresa" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Parâmetros da Empresa</h1>
+          <p>Defina os dados da empresa fictícia que os alunos irão gerenciar</p>
+        </div>
+        <div class="card">
+          <div class="section-label">Identificação</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nome da Empresa</label>
+              <input type="text" id="emp-nome" placeholder="Ex: Indústria Alfa"/>
+            </div>
+            <div class="form-group">
+              <label>Produto</label>
+              <input type="text" id="emp-produto" placeholder="Ex: Peças, Caixas, Unidades"/>
+            </div>
+          </div>
+          <div class="section-label mt-8">Capacidades (por rodada)</div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Cap. Regular (un.)</label>
+              <input type="number" id="emp-cap-reg" placeholder="40000"/>
+              <div class="form-hint">Produção máxima regular</div>
+            </div>
+            <div class="form-group">
+              <label>Cap. Hora Extra (un.)</label>
+              <input type="number" id="emp-cap-he" placeholder="5000"/>
+              <div class="form-hint">Adicional via horas extras</div>
+            </div>
+            <div class="form-group">
+              <label>Cap. Subcontratação (un.)</label>
+              <input type="number" id="emp-cap-sub" placeholder="10000"/>
+              <div class="form-hint">Terceirização máxima</div>
+            </div>
+          </div>
+          <div class="section-label mt-8">Custos</div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Custo Regular (R$/un.)</label>
+              <input type="number" id="emp-c-reg" placeholder="50"/>
+            </div>
+            <div class="form-group">
+              <label>Custo Hora Extra (R$/un.)</label>
+              <input type="number" id="emp-c-he" placeholder="75"/>
+            </div>
+            <div class="form-group">
+              <label>Custo Subcontratação (R$/un.)</label>
+              <input type="number" id="emp-c-sub" placeholder="90"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Custo Estoque (R$/un./período)</label>
+              <input type="number" id="emp-c-est" placeholder="10"/>
+            </div>
+            <div class="form-group">
+              <label>Custo Falta / Backlog (R$/un.)</label>
+              <input type="number" id="emp-c-falta" placeholder="200"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Estoque Inicial (un.)</label>
+            <input type="number" id="emp-est-ini" placeholder="2000"/>
+            <div class="form-hint">Estoque disponível na Rodada 1</div>
+          </div>
+          <div class="btn-group mt-16">
+            <button class="btn btn-primary" onclick="salvarEmpresa()">💾 Salvar Empresa</button>
+          </div>
+          <div class="alert alert-ok" id="emp-ok"></div>
+        </div>
+      </div>
+
+      <!-- ══ SESSÃO ══ -->
+      <div id="page-sessao" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Controle da Sessão</h1>
+          <p>Gerencie o estado do jogo e avance as rodadas</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="section-label">Status da Sessão</div>
+            <div class="stats-row" id="sess-stats"></div>
+            <div class="rounds-track" id="sess-rodadas"></div>
+          </div>
+          <div class="card">
+            <div class="section-label">Ações</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <button class="btn btn-success btn-full" onclick="abrirSessao()">
+                🟢 Abrir Sessão (liberar cadastro)
+              </button>
+              <button class="btn btn-ghost btn-full" onclick="fecharSessao()">
+                🔴 Fechar Sessão (bloquear cadastro)
+              </button>
+              <hr class="divider"/>
+              <p class="text-sm text-muted">Avance a rodada quando todas as equipes tiverem submetido o plano.</p>
+              <button class="btn btn-primary btn-full" onclick="avancarRodada()">
+                ⏭ Avançar para Próxima Rodada
+              </button>
+              <hr class="divider"/>
+              <button class="btn btn-danger btn-full" onclick="resetarJogo()">
+                🗑 Resetar Jogo Completo
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="card mt-16">
+          <div class="section-label">Progresso das Equipes — Rodada Atual</div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="sess-progresso-tbl">
+              <thead><tr><th>Equipe</th><th>Membros</th><th>Plano Submetido?</th><th>Custo Rodada</th></tr></thead>
+              <tbody id="sess-progresso-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EQUIPES ══ -->
+      <div id="page-equipes" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Equipes Cadastradas</h1>
+          <p>Visão detalhada de todas as equipes e seus históricos de demanda</p>
+        </div>
+        <div class="btn-group mb-16">
+          <button class="btn btn-ghost btn-sm" onclick="carregarEquipes()">🔄 Atualizar</button>
+        </div>
+        <div class="tbl-wrap mb-16">
+          <table class="tbl" id="equipes-tbl">
+            <thead><tr>
+              <th>Equipe</th><th>Membros</th><th>Perfil Demanda</th>
+              <th>Rodadas</th><th>Custo Acumulado</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="equipes-body"></tbody>
+          </table>
+        </div>
+        <div class="card" id="equipe-detalhe" style="display:none">
+          <div class="section-label" id="equipe-detalhe-titulo"></div>
+          <div class="chart-box">
+            <h4>Demanda Histórica + Futura</h4>
+            <canvas id="chart-equipe-demanda" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RANKING ══ -->
+      <div id="page-ranking" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Ranking Geral</h1>
+          <p>Classificação por menor custo acumulado ao longo das rodadas</p>
+        </div>
+        <button class="btn btn-ghost btn-sm mb-16" onclick="carregarRanking()">🔄 Atualizar</button>
+        <div class="chart-box mb-16">
+          <h4>Custo Acumulado por Equipe</h4>
+          <canvas id="chart-ranking" height="160"></canvas>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Equipe</th><th>Membros</th><th>Rodadas</th><th>Custo Acumulado</th><th>Custo Médio/Rodada</th></tr></thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ CONFIG ══ -->
+      <div id="page-config" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Configurações do Sistema</h1>
+        </div>
+        <div class="card">
+          <div class="section-label">Alterar Senha do Moderador</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nova Senha</label>
+              <input type="password" id="nova-senha" placeholder="••••••••"/>
+            </div>
+            <div style="display:flex;align-items:flex-end;padding-bottom:18px">
+              <button class="btn btn-ghost" onclick="alterarSenha()">Salvar</button>
+            </div>
+          </div>
+          <div class="alert alert-ok" id="senha-ok"></div>
+        </div>
+      </div>
+
+    </main><!-- /mod-main -->
+  </div><!-- /mod-layout -->
+</div><!-- /mod-panel -->
+
+<script src="/js/shared.js"></script>
+<script src="/js/moderador.js"></script>
+</body>
+</html>

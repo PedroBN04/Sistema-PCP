@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Alunos — PCP Simulador</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+/* ── LAYOUT ALUNOS ── */
+.aluno-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.sidebar-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--text3); padding: 14px 16px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 16px;
+  border-radius: 0; cursor: pointer; font-size: 13px; font-weight: 500;
+  color: var(--text2); transition: all .15s; border: none; background: none;
+  width: 100%; text-align: left; font-family: var(--font-body);
+  border-left: 3px solid transparent;
+}
+.nav-item:hover  { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--blue-dim); color: var(--blue);
+                   border-left-color: var(--blue); font-weight: 600; }
+.nav-item .ni-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.sidebar-equipe {
+  margin: 0 12px 12px; padding: 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+}
+.sidebar-equipe .eq-name { font-family: var(--font-head); font-size: 14px; font-weight: 700; }
+.sidebar-equipe .eq-sub  { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.sidebar-equipe .eq-badge{ display: inline-block; margin-top: 6px; }
+
+/* Main */
+.aluno-main { padding: 28px; }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-family: var(--font-head); font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.page-header p  { font-size: 13px; color: var(--text2); }
+
+/* Tela de cadastro / seleção */
+.gate-card {
+  max-width: 480px; margin: 60px auto;
+}
+.gate-card h2 { font-family: var(--font-head); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.gate-card p  { color: var(--text2); font-size: 13px; margin-bottom: 22px; }
+
+/* Plano - estimativa em tempo real */
+.plano-summary {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 18px; margin-bottom: 18px;
+}
+.plano-summary h4 { font-size: 12px; font-weight: 700; text-transform: uppercase;
+                    letter-spacing: .07em; color: var(--text3); margin-bottom: 12px; }
+.ps-row { display: flex; justify-content: space-between; align-items: center;
+          padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.ps-row:last-child { border: none; font-weight: 700; font-size: 14px; }
+.ps-row .label { color: var(--text2); }
+
+/* Resultado da rodada */
+.resultado-box {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 20px; margin-top: 16px;
+}
+.resultado-box h3 { font-family: var(--font-head); font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+.res-row { display: flex; justify-content: space-between; padding: 7px 0;
+           border-bottom: 1px solid var(--border); font-size: 13px; }
+.res-row:last-child { border: none; font-weight: 700; color: var(--text); }
+.res-row .label { color: var(--text2); }
+.res-ns { font-family: var(--font-head); font-size: 32px; font-weight: 800; text-align: center;
+          padding: 16px; border-radius: var(--r-sm); margin-bottom: 16px; }
+.res-ns.high  { background: var(--green-dim); color: var(--green); }
+.res-ns.mid   { background: rgba(251,191,36,.12); color: var(--amber); }
+.res-ns.low   { background: var(--red-dim); color: var(--red); }
+
+/* Sessão bloqueada */
+.sessao-bloqueada {
+  text-align: center; padding: 80px 28px;
+}
+.sessao-bloqueada .icon { font-size: 56px; margin-bottom: 20px; display: block; }
+.sessao-bloqueada h2 { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+.sessao-bloqueada p  { color: var(--text2); max-width: 420px; margin: 0 auto; font-size: 14px; }
+
+@media (max-width: 800px) {
+  .aluno-layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 8px; }
+  .sidebar-label { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <a class="logo" href="/">
+      <div class="logo-badge">PCP</div>
+      <div><div class="logo-name">PCP Simulador</div><div class="logo-sub">Área dos Alunos</div></div>
+    </a>
+    <div id="topbar-rodada" class="topbar-pill">—</div>
+  </div>
+</nav>
+
+<!-- SESSÃO FECHADA -->
+<div id="sessao-fechada-view" style="display:none">
+  <div class="sessao-bloqueada">
+    <span class="icon">⏳</span>
+    <h2>Sessão ainda não aberta</h2>
+    <p>O moderador ainda não liberou o cadastro de equipes. Aguarde as instruções e recarregue a página.</p>
+    <button class="btn btn-ghost mt-16" onclick="location.reload()">🔄 Verificar novamente</button>
+  </div>
+</div>
+
+<!-- TELA CADASTRO (antes de ter equipe) -->
+<div id="cadastro-view" style="display:none" class="container">
+  <div class="gate-card">
+    <div class="card">
+      <h2>Cadastrar Equipe</h2>
+      <p>Registre sua equipe para começar a jogar. Cada equipe recebe seu próprio histórico de demanda.</p>
+      <div class="alert alert-err" id="cad-err"></div>
+      <div class="form-group">
+        <label>Nome da Equipe</label>
+        <input type="text" id="cad-nome" placeholder="Ex: Equipe Alpha"/>
+      </div>
+      <div class="form-group">
+        <label>Membros</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input type="text" id="cad-membro-input" placeholder="Nome do membro" style="flex:1"
+                 onkeydown="if(event.key==='Enter'){event.preventDefault();addMembro()}"/>
+          <button class="btn btn-ghost btn-sm" onclick="addMembro()">+ Add</button>
+        </div>
+        <div id="cad-membros-list"></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="cadastrarEquipe()">
+        Entrar no Jogo
+        <div class="spinner" id="cad-spin"></div>
+      </button>
+      <hr class="divider"/>
+      <p class="text-xs text-muted" style="text-align:center">Já cadastrou sua equipe?</p>
+      <div class="form-group mt-8">
+        <label>Selecionar equipe existente</label>
+        <select id="sel-equipe-exist"></select>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="selecionarEquipe()">Acessar como esta equipe</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAINEL PRINCIPAL (após cadastro) -->
+<div id="aluno-panel" style="display:none">
+  <div class="aluno-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div id="sidebar-equipe-info" class="sidebar-equipe">
+        <div class="eq-name" id="sb-eq-nome">—</div>
+        <div class="eq-sub"  id="sb-eq-membros">—</div>
+        <span class="badge badge-blue eq-badge" id="sb-eq-rodada">Rodada —</span>
+      </div>
+      <div class="sidebar-label">Jogo</div>
+      <button class="nav-item active" data-apage="briefing">
+        <span class="ni-icon">📌</span> Briefing da Rodada
+      </button>
+      <button class="nav-item" data-apage="dados">
+        <span class="ni-icon">📊</span> Histórico de Demanda
+      </button>
+      <button class="nav-item" data-apage="empresa">
+        <span class="ni-icon">🏭</span> Dados da Empresa
+      </button>
+      <button class="nav-item" data-apage="plano">
+        <span class="ni-icon">📋</span> Plano Agregado
+      </button>
+      <div class="sidebar-label">Histórico</div>
+      <button class="nav-item" data-apage="resultados">
+        <span class="ni-icon">🏆</span> Meus Resultados
+      </button>
+      <button class="nav-item" data-apage="ranking">
+        <span class="ni-icon">📈</span> Ranking Geral
+      </button>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="aluno-main">
+
+      <!-- ══ BRIEFING ══ -->
+      <div id="apage-briefing" class="apage-content">
+        <div class="page-header">
+          <h1 id="brief-titulo">Bem-vinda, Equipe!</h1>
+          <p id="brief-subtitulo">Leia as instruções da rodada antes de planejar</p>
+        </div>
+        <div class="stats-row" id="brief-stats"></div>
+        <div class="card" id="brief-instrucoes">
+          <div class="section-label">O que fazer nesta rodada</div>
+          <div id="brief-body" style="color:var(--text2);font-size:14px;line-height:1.9"></div>
+        </div>
+        <div class="card mt-16" id="brief-ultimo-resultado" style="display:none">
+          <div class="section-label">Resultado da Rodada Anterior</div>
+          <div id="brief-ult-res-content"></div>
+        </div>
+      </div>
+
+      <!-- ══ HISTÓRICO ══ -->
+      <div id="apage-dados" class="apage-content" style="display:none">
+        <div class="page-header">
+          <h1>Histórico de Demanda</h1>
+          <p>Use esses dados para projetar a demanda futura e elaborar seu plano</p>
+        </div>
+        <div class="chart-box">
+          <h4>Demanda Histórica — 8 Períodos Anteriores</h4>
+          <canvas id="chart-historico" height="220"></canvas>
+        </div>
+        <div class="card">
+          <div class="section-label">Valores por Período</div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="hist-tabela">
+              <thead><tr><th>Período</th><th>Demanda</th><th>Variação</th></tr></thead>
+              <tbody id="hist-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EMPRESA ══ -->
+      <div id="apage-empresa" class="apage-content" style="display:none">
+        <div class="page-header">
+          <h1>Dados da Empresa</h1>
+          <p>Parâmetros operacionais e financeiros da empresa que você está gerenciando</p>
+        </div>
+        <div id="empresa-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:16px"></div>
+      </div>
+
+      <!-- ══ PLANO ══ -->
+      <div id="apage-plano" class="apage-content" style="display:none">
+        <div class="page-header">
+          <h1 id="plano-titulo">Plano Agregado — Rodada —</h1>
+          <p>Defina a estratégia de produção para este período</p>
+        </div>
+        <div id="plano-ja-submetido" class="alert alert-ok" style="display:none">
+          ✅ Plano desta rodada já submetido. Aguarde o moderador avançar para a próxima rodada.
+        </div>
+        <div id="plano-form-wrap" style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start">
+          <div class="card">
+            <div class="section-label">Decisões de Produção</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Produção Regular (un.)</label>
+                <input type="number" id="pl-prod" min="0" value="0" oninput="calcularEstimativa()"/>
+                <div class="form-hint" id="pl-cap-reg-hint">Máx: —</div>
+              </div>
+              <div class="form-group">
+                <label>Horas Extras (un.)</label>
+                <input type="number" id="pl-he" min="0" value="0" oninput="calcularEstimativa()"/>
+                <div class="form-hint" id="pl-cap-he-hint">Máx: —</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Subcontratação (un.)</label>
+                <input type="number" id="pl-sub" min="0" value="0" oninput="calcularEstimativa()"/>
+                <div class="form-hint" id="pl-cap-sub-hint">Máx: —</div>
+              </div>
+              <div class="form-group">
+                <label>Estoque Atual (automático)</label>
+                <input type="number" id="pl-estoque-atual" disabled style="opacity:.5"/>
+                <div class="form-hint">Herdado da rodada anterior</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Contratações</label>
+                <input type="number" id="pl-cont" min="0" value="0"/>
+              </div>
+              <div class="form-group">
+                <label>Demissões</label>
+                <input type="number" id="pl-dem" min="0" value="0"/>
+              </div>
+            </div>
+            <div class="alert alert-err" id="plano-err"></div>
+            <button class="btn btn-primary btn-full" onclick="submeterPlano()">
+              Submeter Plano Agregado
+              <div class="spinner" id="plano-spin"></div>
+            </button>
+          </div>
+
+          <!-- Estimativa -->
+          <div class="plano-summary">
+            <h4>Estimativa em Tempo Real</h4>
+            <div class="ps-row"><span class="label">Prod. Regular</span><span id="est-prod">0</span></div>
+            <div class="ps-row"><span class="label">+ Horas Extras</span><span id="est-he">0</span></div>
+            <div class="ps-row"><span class="label">+ Subcontratação</span><span id="est-sub">0</span></div>
+            <div class="ps-row"><span class="label">+ Estoque Inicial</span><span id="est-est">0</span></div>
+            <div class="ps-row" style="border-top:2px solid var(--border2);padding-top:8px;margin-top:4px">
+              <span class="label">= Total Disponível</span><span id="est-total" style="color:var(--blue);font-weight:700">0</span>
+            </div>
+            <hr class="divider"/>
+            <div class="ps-row"><span class="label">Custo Regular</span><span id="est-c-prod">R$ 0</span></div>
+            <div class="ps-row"><span class="label">Custo H. Extra</span><span id="est-c-he">R$ 0</span></div>
+            <div class="ps-row"><span class="label">Custo Subcontr.</span><span id="est-c-sub">R$ 0</span></div>
+            <div class="ps-row" style="font-size:15px;border-top:2px solid var(--border2);padding-top:8px;margin-top:4px">
+              <span class="label">Custo Estimado</span>
+              <span id="est-total-custo" style="color:var(--amber);font-weight:700">R$ 0</span>
+            </div>
+            <p class="text-xs text-muted mt-8">* Não inclui custo de estoque e falta (dependem da demanda real)</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RESULTADOS ══ -->
+      <div id="apage-resultados" class="apage-content" style="display:none">
+        <div class="page-header">
+          <h1>Meus Resultados</h1>
+          <p>Desempenho por rodada — operacional e financeiro</p>
+        </div>
+        <div class="stats-row" id="res-stats"></div>
+        <div class="chart-box">
+          <h4>Demanda Realizada vs. Atendimento</h4>
+          <canvas id="chart-res-demanda" height="200"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>Composição de Custos por Rodada</h4>
+          <canvas id="chart-res-custos" height="180"></canvas>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="res-tbl">
+            <thead><tr>
+              <th>Rod.</th><th>Demanda</th><th>Produzido</th><th>Atend.</th>
+              <th>Falta</th><th>Est. Final</th><th>Custo Total</th><th>NS%</th>
+            </tr></thead>
+            <tbody id="res-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ RANKING ══ -->
+      <div id="apage-ranking" class="apage-content" style="display:none">
+        <div class="page-header">
+          <h1>Ranking Geral</h1>
+          <p>Classificação de todas as equipes pelo menor custo acumulado</p>
+        </div>
+        <button class="btn btn-ghost btn-sm mb-16" onclick="carregarRankingAluno()">🔄 Atualizar</button>
+        <div class="chart-box">
+          <h4>Custo Acumulado por Equipe</h4>
+          <canvas id="chart-rank-aluno" height="160"></canvas>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Equipe</th><th>Rodadas</th><th>Custo Acumulado</th></tr></thead>
+            <tbody id="rank-aluno-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="/js/shared.js"></script>
+<script src="/js/alunos.js"></script>
+</body>
+</html>

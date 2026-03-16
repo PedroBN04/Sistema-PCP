@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PCP Simulador — UFU/FAGEN</title>
+<link rel="stylesheet" href="/css/style.css"/>
+<style>
+/* ── LANDING EXCLUSIVA ── */
+body { overflow-x: hidden; }
+
+/* grade de fundo */
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(59,127,245,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59,127,245,.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.grid-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(59,127,245,.12) 0%, transparent 70%);
+}
+
+/* hero */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 80px 28px 60px;
+  width: 100%;
+}
+.hero-inner {
+  max-width: 860px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(59,127,245,.12); border: 1px solid rgba(59,127,245,.3);
+  color: var(--blue); font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  padding: 5px 16px; border-radius: 20px; margin-bottom: 32px;
+}
+.hero-eyebrow span { width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue); box-shadow: 0 0 6px var(--blue);
+  animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.hero h1 {
+  font-family: var(--font-head); font-size: clamp(38px,6vw,72px);
+  font-weight: 800; line-height: 1.05; margin-bottom: 22px;
+  letter-spacing: -.02em;
+}
+.hero h1 .line-plain  { color: var(--text); display: block; }
+.hero h1 .line-accent {
+  display: block;
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-desc {
+  max-width: 580px; color: var(--text2); font-size: 17px;
+  line-height: 1.75; margin-bottom: 52px;
+}
+
+/* cartões de entrada */
+.entry-cards {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  max-width: 680px; width: 100%;
+  margin: 0 auto;
+}
+.entry-card {
+  position: relative; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 36px 32px;
+  text-decoration: none; color: inherit;
+  transition: transform .25s, border-color .25s, box-shadow .25s;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px;
+  cursor: pointer;
+}
+.entry-card::before {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .25s;
+}
+.entry-card.mod-card::before  { background: radial-gradient(ellipse at 0% 0%, rgba(167,139,250,.12), transparent 60%); }
+.entry-card.aluno-card::before { background: radial-gradient(ellipse at 0% 0%, rgba(59,127,245,.12), transparent 60%); }
+.entry-card:hover::before { opacity: 1; }
+.entry-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.entry-card.mod-card:hover   { border-color: rgba(167,139,250,.5); }
+.entry-card.aluno-card:hover { border-color: rgba(59,127,245,.5); }
+
+.entry-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.mod-card   .entry-icon { background: rgba(167,139,250,.15); }
+.aluno-card .entry-icon { background: rgba(59,127,245,.15); }
+
+.entry-card h2 { font-family: var(--font-head); font-size: 20px; font-weight: 700; }
+.entry-card p  { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.entry-arrow   { margin-top: auto; font-size: 20px; color: var(--text3); transition: color .2s, transform .2s; }
+.entry-card:hover .entry-arrow { color: var(--text); transform: translateX(4px); }
+
+.entry-badge {
+  position: absolute; top: 18px; right: 18px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  padding: 3px 10px; border-radius: 20px;
+}
+.mod-card   .entry-badge { background: rgba(167,139,250,.15); color: var(--purple); border: 1px solid rgba(167,139,250,.3); }
+.aluno-card .entry-badge { background: rgba(59,127,245,.15);  color: var(--blue);   border: 1px solid rgba(59,127,245,.3); }
+
+/* seção "sobre" */
+.about { position: relative; z-index: 1; padding: 80px 28px; }
+.about-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+}
+.about-tag {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  color: var(--cyan); margin-bottom: 18px;
+}
+.about h2 {
+  font-family: var(--font-head); font-size: clamp(26px,3vw,38px);
+  font-weight: 800; line-height: 1.15; margin-bottom: 18px;
+}
+.about p { color: var(--text2); font-size: 15px; line-height: 1.8; margin-bottom: 14px; }
+.about-meta { display: flex; flex-direction: column; gap: 10px; }
+.meta-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 14px 16px;
+}
+.meta-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.meta-key  { font-size: 11px; font-weight: 700; text-transform: uppercase;
+             letter-spacing: .06em; color: var(--text3); margin-bottom: 2px; }
+.meta-val  { font-size: 13px; color: var(--text2); }
+
+/* fluxo */
+.flow { position: relative; z-index: 1; padding: 0 28px 80px; }
+.flow-inner { max-width: 1100px; margin: 0 auto; }
+.flow h2 {
+  font-family: var(--font-head); font-size: 28px; font-weight: 800;
+  text-align: center; margin-bottom: 40px;
+}
+.flow-steps {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 0;
+  position: relative;
+}
+.flow-steps::before {
+  content: ''; position: absolute; top: 28px; left: 12%; right: 12%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border2), var(--border2), transparent);
+}
+.flow-step { text-align: center; padding: 0 16px; position: relative; }
+.step-num {
+  width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head); font-size: 18px; font-weight: 800;
+  position: relative; z-index: 1;
+}
+.step-1 .step-num { background: rgba(167,139,250,.15); border: 2px solid rgba(167,139,250,.4); color: var(--purple); }
+.step-2 .step-num { background: rgba(59,127,245,.15);  border: 2px solid rgba(59,127,245,.4);  color: var(--blue); }
+.step-3 .step-num { background: rgba(34,211,238,.15);  border: 2px solid rgba(34,211,238,.4);  color: var(--cyan); }
+.step-4 .step-num { background: rgba(52,211,153,.15);  border: 2px solid rgba(52,211,153,.4);  color: var(--green); }
+.flow-step h3 { font-family: var(--font-head); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.flow-step p  { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* footer */
+.footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 28px; text-align: center;
+  font-size: 12px; color: var(--text3);
+}
+
+@media (max-width: 700px) {
+  .entry-cards { grid-template-columns: 1fr; }
+  .about-inner { grid-template-columns: 1fr; gap: 36px; }
+  .flow-steps  { grid-template-columns: 1fr 1fr; }
+  .flow-steps::before { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <div class="logo-badge">PCP</div>
+      <div>
+        <div class="logo-name">PCP Simulador</div>
+        <div class="logo-sub">UFU — FAGEN</div>
+      </div>
+    </div>
+    <div class="topbar-pill" id="sessao-pill">Verificando…</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+  <div class="hero-eyebrow">
+    <span></span>
+    PIVIC Nº 391/2025 · UFU/FAGEN
+  </div>
+  <h1>
+    <span class="line-plain">Aprenda PCP</span>
+    <span class="line-accent">jogando de verdade</span>
+  </h1>
+  <p class="hero-desc">
+    Simulador educacional para o ensino do Planejamento e Controle da Produção.
+    Equipes competem em 8 rodadas tomando decisões reais de produção com
+    demanda dinâmica e feedback imediato de custos.
+  </p>
+
+  <div class="entry-cards">
+    <a class="entry-card mod-card" href="/moderador">
+      <span class="entry-badge">Restrito</span>
+      <div class="entry-icon">⚙️</div>
+      <div>
+        <h2>Moderador</h2>
+        <p>Configure a sessão, defina o tipo de demanda, controle as rodadas e acompanhe os resultados de todas as equipes.</p>
+      </div>
+      <span class="entry-arrow">→</span>
+    </a>
+
+    <a class="entry-card aluno-card" href="/alunos">
+      <span class="entry-badge">Equipes</span>
+      <div class="entry-icon">👥</div>
+      <div>
+        <h2>Alunos</h2>
+        <p>Cadastre sua equipe, consulte o histórico de demanda, elabore o Plano Agregado e veja seus resultados por rodada.</p>
+      </div>
+      <span class="entry-arrow">→</span>
+    </a>
+  </div>
+  </div><!-- /.hero-inner -->
+</section>
+
+<!-- SOBRE -->
+<section class="about">
+  <div class="about-inner">
+    <div>
+      <span class="about-tag">Sobre o Projeto</span>
+      <h2>Ensino ativo do PCP com simulação e competição</h2>
+      <p>O PCP Simulador foi desenvolvido como protótipo de pesquisa para investigar como sistemas educacionais baseados em simulação e aprendizagem ativa podem melhorar o ensino de Planejamento e Controle da Produção em cursos de Engenharia e Gestão.</p>
+      <p>A cada rodada, as equipes planejam a produção com base em histórico de demanda, submetem seu plano e recebem feedback imediato sobre custos operacionais e nível de serviço.</p>
+    </div>
+    <div class="about-meta">
+      <div class="meta-row">
+        <span class="meta-icon">🎓</span>
+        <div>
+          <div class="meta-key">Orientador</div>
+          <div class="meta-val">Prof. Dr. João Henrique Lopes Guerra</div>
+        </div>
+      </div>
+      <div class="meta-row">
+        <span class="meta-icon">👩‍🔬</span>
+        <div>
+          <div class="meta-key">Estudantes</div>
+          <div class="meta-val">Eduarda Mendonça de Freitas · Pedro Humberto Bitencourt Nascimento</div>
+        </div>
+      </div>
+      <div class="meta-row">
+        <span class="meta-icon">🏛️</span>
+        <div>
+          <div class="meta-key">Instituição</div>
+          <div class="meta-val">Faculdade de Gestão e Negócios — UFU · Uberlândia, MG</div>
+        </div>
+      </div>
+      <div class="meta-row">
+        <span class="meta-icon">📋</span>
+        <div>
+          <div class="meta-key">Registro</div>
+          <div class="meta-val">DIRPE/PIVIC Nº 391/2025 · Edital DIRPE Nº 007/2025</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLUXO -->
+<section class="flow">
+  <div class="flow-inner">
+    <h2>Como funciona o jogo</h2>
+    <div class="flow-steps">
+      <div class="flow-step step-1">
+        <div class="step-num">1</div>
+        <h3>Moderador configura</h3>
+        <p>Define tipo de demanda, parâmetros da empresa e abre a sessão para cadastro</p>
+      </div>
+      <div class="flow-step step-2">
+        <div class="step-num">2</div>
+        <h3>Equipes se cadastram</h3>
+        <p>Cada equipe recebe seu histórico de demanda único e consulta os dados da empresa</p>
+      </div>
+      <div class="flow-step step-3">
+        <div class="step-num">3</div>
+        <h3>Rodadas de decisão</h3>
+        <p>Equipes elaboram o Plano Agregado e submetem; moderador avança para a próxima rodada</p>
+      </div>
+      <div class="flow-step step-4">
+        <div class="step-num">4</div>
+        <h3>Ranking final</h3>
+        <p>Após 8 rodadas, o relatório compara custos e nível de serviço de todas as equipes</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  PCP Simulador · Protótipo v1.0 · Março 2026 · UFU/FAGEN · PIVIC Nº 391/2025
+</footer>
+
+<script src="/js/shared.js"></script>
+<script>
+(async () => {
+  const pill = document.getElementById('sessao-pill');
+  try {
+    const st = await fetchStatus();
+    if (st.sessao_aberta) {
+      pill.textContent = `Sessão aberta · Rodada ${st.rodada_atual}/${st.total_rodadas}`;
+      pill.className   = 'topbar-pill open';
+    } else {
+      pill.textContent = 'Sessão fechada';
+      pill.className   = 'topbar-pill closed';
+    }
+  } catch {
+    pill.textContent = 'Servidor offline';
+    pill.className   = 'topbar-pill closed';
+  }
+})();
+</script>
+</body>
+</html>
