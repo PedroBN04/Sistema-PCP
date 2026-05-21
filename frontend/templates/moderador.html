@@ -203,42 +203,287 @@
         </div>
 
         <!-- Automático -->
-        <div id="dem-auto" class="card mb-16">
-          <div class="section-label">Perfil de Demanda</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Tipo de Perfil</label>
-              <select id="dem-tipo" onchange="onDemTipoChange()">
-                <option value="uniforme">Uniforme</option>
-                <option value="tendencia">Tendência crescente</option>
-                <option value="ciclicidade">Ciclicidade</option>
-                <option value="tend_ciclic">Tendência + Ciclicidade</option>
-              </select>
-            </div>
-            <div class="form-group" id="dem-enfase-wrap" style="display:none">
-              <label>Ênfase</label>
-              <select id="dem-enfase">
-                <option value="equilibrio">Equilíbrio (50 / 50)</option>
-                <option value="tendencia">Mais tendência (67 / 33)</option>
-                <option value="ciclicidade">Mais ciclicidade (33 / 67)</option>
-              </select>
-            </div>
-          </div>
-          <div class="section-label mt-8">Limites Mínimo / Máximo</div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Mínimo &nbsp;<span id="dem-dmin-hint" style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
-              <input type="number" id="dem-min" placeholder="Padrão do sistema"/>
-              <div class="form-hint" id="dem-rest-min"></div>
-            </div>
-            <div class="form-group">
-              <label>Máximo &nbsp;<span id="dem-dmax-hint" style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
-              <input type="number" id="dem-max" placeholder="Padrão do sistema"/>
-              <div class="form-hint" id="dem-rest-max"></div>
-            </div>
-          </div>
-          <div class="alert alert-err" id="dem-err"></div>
-        </div>
+        <<div id="dem-auto" class="card mb-16">
+  <div class="section-label">Perfil de Demanda</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Tipo de Perfil</label>
+      <select id="dem-tipo" onchange="onDemTipoChange()">
+        <option value="uniforme">Uniforme</option>
+        <option value="tendencia">Tendência crescente</option>
+        <option value="ciclicidade">Ciclicidade</option>
+        <option value="tend_ciclic">Tendência + Ciclicidade</option>
+      </select>
+    </div>
+    <div class="form-group" id="dem-enfase-wrap" style="display:none">
+      <label>Ênfase</label>
+      <select id="dem-enfase">
+        <option value="equilibrio">Equilíbrio (50 / 50)</option>
+        <option value="tendencia">Mais tendência (67 / 33)</option>
+        <option value="ciclicidade">Mais ciclicidade (33 / 67)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Limites Mínimo / Máximo da Demanda</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo &nbsp;<span id="dem-dmin-hint" style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
+      <input type="number" id="dem-min" placeholder="Padrão do sistema"/>
+      <div class="form-hint" id="dem-rest-min"></div>
+    </div>
+    <div class="form-group">
+      <label>Máximo &nbsp;<span id="dem-dmax-hint" style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
+      <input type="number" id="dem-max" placeholder="Padrão do sistema"/>
+      <div class="form-hint" id="dem-rest-max"></div>
+    </div>
+  </div>
+  <div class="alert alert-err" id="dem-err"></div>
+
+  <div class="section-label" style="font-size: 16px; color: var(--text1); border-bottom: none; padding-bottom: 0; margin-top: 32px;">
+    Parametrização do Modelo (Restrições e Valores)
+  </div>
+
+  <div class="section-label mt-8">Preço de venda do produto</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo <span style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
+      <input type="number" id="param-preco-venda-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo <span style="color:var(--text3);text-transform:none;font-weight:400"></span></label>
+      <input type="number" id="param-preco-venda-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Estoque inicial</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-estoque-inicial-min" placeholder="Padrão do sistema"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-estoque-inicial-max" placeholder="Padrão do sistema"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Custo de armazenagem (estoque)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-custo-armazenagem-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-custo-armazenagem-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Capacidade produtiva inicial (regular)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-cap-inicial-min" placeholder="Padrão do sistema"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-cap-inicial-max" placeholder="Padrão do sistema"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Produção Regular: Custo fixo</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-reg-custo-fixo-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-reg-custo-fixo-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Produção Regular: Custo variável</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-reg-custo-var-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-reg-custo-var-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Produção em hora extra (Custo variável)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-he-custo-var-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-he-custo-var-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Nível máximo permitido de hora extra (%)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-he-max-min" placeholder="Padrão do sistema"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-he-max-max" placeholder="Padrão do sistema"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Perda de produtividade na hora extra (%)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-he-perda-min" placeholder="Padrão do sistema"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-he-perda-max" placeholder="Padrão do sistema"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Produção em turno extra: Custo fixo</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-turno-fixo-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-turno-fixo-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Produção em turno extra: Custo variável</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-turno-var-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-turno-var-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Terceirização (Custo variável)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-terc-var-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-terc-var-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Limite máximo da produção em terceirização</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-terc-max-min" placeholder="Padrão do sistema"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-terc-max-max" placeholder="Padrão do sistema"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Perda de clientes (Custo de falta)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-perda-clientes-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-perda-clientes-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Capital disponível para acréscimo de capacidade</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-capital-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-capital-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Taxa de rendimento do capital (%)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-taxa-rend-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-taxa-rend-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Redução do custo variável (por aumento de cap.)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-reducao-var-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-reducao-var-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Acréscimo de Capacidade: 5.000 unidades (Custo)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-acres-5k-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-acres-5k-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Acréscimo de Capacidade: 10.000 unidades (Custo)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-acres-10k-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-acres-10k-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+
+  <div class="section-label mt-8">Acréscimo de Capacidade: 15.000 unidades (Custo)</div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Mínimo</label>
+      <input type="number" id="param-acres-15k-min" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+    <div class="form-group">
+      <label>Máximo</label>
+      <input type="number" id="param-acres-15k-max" placeholder="Padrão do sistema" step="0.01"/>
+    </div>
+  </div>
+</div>
 
         <!-- Manual -->
         <div id="dem-manual" class="card mb-16" style="display:none">

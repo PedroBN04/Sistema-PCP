@@ -22,6 +22,99 @@ const DEM_DESC = {
   tend_ciclic: 'Combina a tendência crescente com o padrão cíclico. Use a opção "Ênfase" para ajustar o peso de cada componente.'
 };
 
+
+// ── PARÊMTROS ──────────────────────────────────────────
+const PARAM_DEFAULTS = {
+  uniforme: {
+    'param-preco-venda': 100,
+    'param-estoque-inicial': 1000,
+    'param-custo-armazenagem': 15,
+    'param-cap-inicial': 28000,
+    'param-reg-custo-fixo': 580000,
+    'param-reg-custo-var': 60,
+    'param-he-custo-var': 90,
+    'param-he-max': 20,
+    'param-he-perda': 10,
+    'param-turno-fixo': 380000,
+    'param-turno-var': 70,
+    'param-acres-5k': 200000,
+    'param-acres-10k': 350000,
+    'param-acres-15k': 500000,
+    'param-terc-var': 86,
+    'param-terc-max': 20000,
+    'param-capital': 700000,
+    'param-taxa-rend': 3.5,
+    'param-reducao-var': 1.5,
+    'param-perda-clientes': 80
+  },
+  tendencia: {
+    'param-preco-venda': 105,
+    'param-estoque-inicial': 1000,
+    'param-custo-armazenagem': 10,
+    'param-cap-inicial': 20000,
+    'param-reg-custo-fixo': 480000,
+    'param-reg-custo-var': 63,
+    'param-he-custo-var': 95,
+    'param-he-max': 20,
+    'param-he-perda': 2,
+    'param-turno-fixo': 190000,
+    'param-turno-var': 68,
+    'param-acres-5k': 200000,
+    'param-acres-10k': 350000,
+    'param-acres-15k': 500000,
+    'param-terc-var': 94,
+    'param-terc-max': 20000,
+    'param-capital': 700000,
+    'param-taxa-rend': 3.5,
+    'param-reducao-var': 2.0,
+    'param-perda-clientes': 70
+  },
+  ciclicidade: {
+    'param-preco-venda': 95,
+    'param-estoque-inicial': 1000,
+    'param-custo-armazenagem': 12,
+    'param-cap-inicial': 24000,
+    'param-reg-custo-fixo': 515000,
+    'param-reg-custo-var': 57,
+    'param-he-custo-var': 85,
+    'param-he-max': 20,
+    'param-he-perda': 5,
+    'param-turno-fixo': 320000,
+    'param-turno-var': 65,
+    'param-acres-5k': 200000,
+    'param-acres-10k': 350000,
+    'param-acres-15k': 500000,
+    'param-terc-var': 84,
+    'param-terc-max': 20000,
+    'param-capital': 700000,
+    'param-taxa-rend': 3.5,
+    'param-reducao-var': 2.0,
+    'param-perda-clientes': 70
+  },
+  tend_ciclic: {
+    'param-preco-venda': 108,
+    'param-estoque-inicial': 1000,
+    'param-custo-armazenagem': 10,
+    'param-cap-inicial': 20000,
+    'param-reg-custo-fixo': 480000,
+    'param-reg-custo-var': 65,
+    'param-he-custo-var': 96,
+    'param-he-max': 20,
+    'param-he-perda': 2,
+    'param-turno-fixo': 195000,
+    'param-turno-var': 70,
+    'param-acres-5k': 200000,
+    'param-acres-10k': 350000,
+    'param-acres-15k': 500000,
+    'param-terc-var': 92,
+    'param-terc-max': 20000,
+    'param-capital': 700000,
+    'param-taxa-rend': 3.5,
+    'param-reducao-var': 5.0,
+    'param-perda-clientes': 50
+  }
+};
+
 // ── NAVEGAÇÃO ──────────────────────────────────────────
 document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
   btn.addEventListener('click', () => navegarPara(btn.dataset.page));
@@ -165,14 +258,20 @@ function buildManualInputs() {
     </div>`).join('');
 }
 
+
 function onDemTipoChange() {
   const tipo = document.getElementById('dem-tipo').value;
   const p    = DEM_DEFAULTS[tipo];
-  document.getElementById('dem-dmin-hint').textContent = `(padrão: ${fmt(p.dmin)})`;
-  document.getElementById('dem-dmax-hint').textContent = `(padrão: ${fmt(p.dmax)})`;
-  document.getElementById('dem-rest-min').textContent  = `Mín ≥ ${fmt(p.rmin)} · Diferença ≥ ${fmt(p.dif_min)}`;
-  document.getElementById('dem-rest-max').textContent  = `Máx ≤ ${fmt(p.rmax)} · Diferença ≤ ${fmt(p.dif_max)}`;
-  document.getElementById('dem-enfase-wrap').style.display = tipo === 'tend_ciclic' ? 'block' : 'none';
+  
+  if (document.getElementById('dem-dmin-hint')) {
+    document.getElementById('dem-dmin-hint').textContent = `(padrão: ${fmt(p.dmin)})`;
+    document.getElementById('dem-dmax-hint').textContent = `(padrão: ${fmt(p.dmax)})`;
+    document.getElementById('dem-rest-min').textContent  = `Mín ≥ ${fmt(p.rmin)} · Diferença ≥ ${fmt(p.dif_min)}`;
+    document.getElementById('dem-rest-max').textContent  = `Máx ≤ ${fmt(p.rmax)} · Diferença ≤ ${fmt(p.dif_max)}`;
+  }
+  
+  const wrap = document.getElementById('dem-enfase-wrap');
+  if (wrap) wrap.style.display = tipo === 'tend_ciclic' ? 'block' : 'none';
 
   // atualizar descrição
   const d = document.getElementById('dem-descricao');
@@ -185,6 +284,40 @@ function onDemTipoChange() {
         <strong>Restrição Mín:</strong> ≥ ${fmt(p.rmin)} &nbsp;|&nbsp; <strong>Restrição Máx:</strong> ≤ ${fmt(p.rmax)}<br>
         <strong>Diferença:</strong> entre ${fmt(p.dif_min)} e ${fmt(p.dif_max)}
       </p>`;
+  }
+
+  // =========================================================
+  // NOVO: PREENCHIMENTO AUTOMÁTICO + TEXTO DE PADRÃO (HINT)
+  // =========================================================
+  const parametros = PARAM_DEFAULTS[tipo];
+  if (parametros) {
+    for (const [idBase, valor] of Object.entries(parametros)) {
+      const inputMin = document.getElementById(`${idBase}-min`);
+      const inputMax = document.getElementById(`${idBase}-max`);
+      
+      // Utiliza a função fmt() do sistema para formatar (ex: 20000 vira 20.000)
+      const valorFormatado = (typeof fmt === 'function') ? fmt(valor) : valor;
+      
+      if (inputMin) {
+        inputMin.value = valor;
+        
+        // Localiza a <label> e atualiza o texto do Mínimo
+        const labelMin = inputMin.previousElementSibling;
+        if (labelMin && labelMin.tagName === 'LABEL') {
+          labelMin.innerHTML = `Mínimo &nbsp;<span style="color:var(--text3);text-transform:none;font-weight:400">(padrão: ${valorFormatado})</span>`;
+        }
+      }
+      
+      if (inputMax) {
+        inputMax.value = valor;
+        
+        // Localiza a <label> e atualiza o texto do Máximo
+        const labelMax = inputMax.previousElementSibling;
+        if (labelMax && labelMax.tagName === 'LABEL') {
+          labelMax.innerHTML = `Máximo &nbsp;<span style="color:var(--text3);text-transform:none;font-weight:400">(padrão: ${valorFormatado})</span>`;
+        }
+      }
+    }
   }
 }
 
