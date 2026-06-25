@@ -49,7 +49,30 @@ def default_config():
             "tendencia":   {"min": 35000, "max": 45000, "rest_min": 30000, "rest_max": 50000, "dif_min": 5000,  "dif_max": 15000},
             "ciclicidade": {"min": 37000, "max": 44000, "rest_min": 30000, "rest_max": 50000, "dif_min": 5000,  "dif_max": 10000},
             "tend_ciclic": {"min": 32500, "max": 47500, "rest_min": 30000, "rest_max": 50000, "dif_min": 10000, "dif_max": 18000}
-        }
+        },
+        "parametros_modelo": {
+            "preco_min": 100,       "preco_max": 100,
+            "est_ini_min": 1000,    "est_ini_max": 1000,
+            "armazen_min": 15,      "armazen_max": 15,
+            "cap_ini_min": 28000,   "cap_ini_max": 28000,
+            "reg_cf_min": 580000,   "reg_cf_max": 580000,
+            "reg_cv_min": 60,       "reg_cv_max": 60,
+            "he_cv_min": 90,        "he_cv_max": 90,
+            "he_max_min": 20,       "he_max_max": 20,
+            "he_perda_min": 10,     "he_perda_max": 10,
+            "te_cf_min": 380000,    "te_cf_max": 380000,
+            "te_cv_min": 70,        "te_cv_max": 70,
+            "acr5_min": 200000,     "acr5_max": 200000,
+            "acr10_min": 350000,    "acr10_max": 350000,
+            "acr15_min": 500000,    "acr15_max": 500000,
+            "capital_min": 700000,  "capital_max": 700000,
+            "taxa_min": 3.5,        "taxa_max": 3.5,
+            "redcv_min": 1.5,       "redcv_max": 1.5,
+            "terc_cv_min": 86,      "terc_cv_max": 86,
+            "terc_lim_min": 20000,  "terc_lim_max": 20000,
+            "perda_cli_min": 80,    "perda_cli_max": 80,
+}
+
     }
 
 def load_db():

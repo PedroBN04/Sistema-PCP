@@ -22,99 +22,6 @@ const DEM_DESC = {
   tend_ciclic: 'Combina a tendência crescente com o padrão cíclico. Use a opção "Ênfase" para ajustar o peso de cada componente.'
 };
 
-
-// ── PARÊMTROS ──────────────────────────────────────────
-const PARAM_DEFAULTS = {
-  uniforme: {
-    'param-preco-venda': 100,
-    'param-estoque-inicial': 1000,
-    'param-custo-armazenagem': 15,
-    'param-cap-inicial': 28000,
-    'param-reg-custo-fixo': 580000,
-    'param-reg-custo-var': 60,
-    'param-he-custo-var': 90,
-    'param-he-max': 20,
-    'param-he-perda': 10,
-    'param-turno-fixo': 380000,
-    'param-turno-var': 70,
-    'param-acres-5k': 200000,
-    'param-acres-10k': 350000,
-    'param-acres-15k': 500000,
-    'param-terc-var': 86,
-    'param-terc-max': 20000,
-    'param-capital': 700000,
-    'param-taxa-rend': 3.5,
-    'param-reducao-var': 1.5,
-    'param-perda-clientes': 80
-  },
-  tendencia: {
-    'param-preco-venda': 105,
-    'param-estoque-inicial': 1000,
-    'param-custo-armazenagem': 10,
-    'param-cap-inicial': 20000,
-    'param-reg-custo-fixo': 480000,
-    'param-reg-custo-var': 63,
-    'param-he-custo-var': 95,
-    'param-he-max': 20,
-    'param-he-perda': 2,
-    'param-turno-fixo': 190000,
-    'param-turno-var': 68,
-    'param-acres-5k': 200000,
-    'param-acres-10k': 350000,
-    'param-acres-15k': 500000,
-    'param-terc-var': 94,
-    'param-terc-max': 20000,
-    'param-capital': 700000,
-    'param-taxa-rend': 3.5,
-    'param-reducao-var': 2.0,
-    'param-perda-clientes': 70
-  },
-  ciclicidade: {
-    'param-preco-venda': 95,
-    'param-estoque-inicial': 1000,
-    'param-custo-armazenagem': 12,
-    'param-cap-inicial': 24000,
-    'param-reg-custo-fixo': 515000,
-    'param-reg-custo-var': 57,
-    'param-he-custo-var': 85,
-    'param-he-max': 20,
-    'param-he-perda': 5,
-    'param-turno-fixo': 320000,
-    'param-turno-var': 65,
-    'param-acres-5k': 200000,
-    'param-acres-10k': 350000,
-    'param-acres-15k': 500000,
-    'param-terc-var': 84,
-    'param-terc-max': 20000,
-    'param-capital': 700000,
-    'param-taxa-rend': 3.5,
-    'param-reducao-var': 2.0,
-    'param-perda-clientes': 70
-  },
-  tend_ciclic: {
-    'param-preco-venda': 108,
-    'param-estoque-inicial': 1000,
-    'param-custo-armazenagem': 10,
-    'param-cap-inicial': 20000,
-    'param-reg-custo-fixo': 480000,
-    'param-reg-custo-var': 65,
-    'param-he-custo-var': 96,
-    'param-he-max': 20,
-    'param-he-perda': 2,
-    'param-turno-fixo': 195000,
-    'param-turno-var': 70,
-    'param-acres-5k': 200000,
-    'param-acres-10k': 350000,
-    'param-acres-15k': 500000,
-    'param-terc-var': 92,
-    'param-terc-max': 20000,
-    'param-capital': 700000,
-    'param-taxa-rend': 3.5,
-    'param-reducao-var': 5.0,
-    'param-perda-clientes': 50
-  }
-};
-
 // ── NAVEGAÇÃO ──────────────────────────────────────────
 document.querySelectorAll('.nav-item[data-page]').forEach(btn => {
   btn.addEventListener('click', () => navegarPara(btn.dataset.page));
@@ -125,13 +32,15 @@ function navegarPara(page) {
   document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
   document.querySelectorAll('.page-content').forEach(p => p.style.display = 'none');
   document.getElementById(`page-${page}`).style.display = 'block';
-  if (page === 'visao-geral') carregarVisaoGeral();
-  if (page === 'demanda')     carregarConfigDemanda();
-  if (page === 'empresa')     carregarEmpresa();
-  if (page === 'sessao')      carregarSessao();
-  if (page === 'equipes')     carregarEquipes();
-  if (page === 'ranking')     carregarRanking();
+  if (page === 'visao-geral')  carregarVisaoGeral();
+  if (page === 'demanda')      carregarConfigDemanda();
+  if (page === 'parametros')   carregarParametros();   
+  if (page === 'empresa')      carregarEmpresa();
+  if (page === 'sessao')       carregarSessao();
+  if (page === 'equipes')      carregarEquipes();
+  if (page === 'ranking')      carregarRanking();
 }
+
 
 // ── LOGIN ─────────────────────────────────────────────
 async function doLogin() {
@@ -258,20 +167,14 @@ function buildManualInputs() {
     </div>`).join('');
 }
 
-
 function onDemTipoChange() {
   const tipo = document.getElementById('dem-tipo').value;
   const p    = DEM_DEFAULTS[tipo];
-  
-  if (document.getElementById('dem-dmin-hint')) {
-    document.getElementById('dem-dmin-hint').textContent = `(padrão: ${fmt(p.dmin)})`;
-    document.getElementById('dem-dmax-hint').textContent = `(padrão: ${fmt(p.dmax)})`;
-    document.getElementById('dem-rest-min').textContent  = `Mín ≥ ${fmt(p.rmin)} · Diferença ≥ ${fmt(p.dif_min)}`;
-    document.getElementById('dem-rest-max').textContent  = `Máx ≤ ${fmt(p.rmax)} · Diferença ≤ ${fmt(p.dif_max)}`;
-  }
-  
-  const wrap = document.getElementById('dem-enfase-wrap');
-  if (wrap) wrap.style.display = tipo === 'tend_ciclic' ? 'block' : 'none';
+  document.getElementById('dem-dmin-hint').textContent = `(padrão: ${fmt(p.dmin)})`;
+  document.getElementById('dem-dmax-hint').textContent = `(padrão: ${fmt(p.dmax)})`;
+  document.getElementById('dem-rest-min').textContent  = `Mín ≥ ${fmt(p.rmin)} · Diferença ≥ ${fmt(p.dif_min)}`;
+  document.getElementById('dem-rest-max').textContent  = `Máx ≤ ${fmt(p.rmax)} · Diferença ≤ ${fmt(p.dif_max)}`;
+  document.getElementById('dem-enfase-wrap').style.display = tipo === 'tend_ciclic' ? 'block' : 'none';
 
   // atualizar descrição
   const d = document.getElementById('dem-descricao');
@@ -284,40 +187,6 @@ function onDemTipoChange() {
         <strong>Restrição Mín:</strong> ≥ ${fmt(p.rmin)} &nbsp;|&nbsp; <strong>Restrição Máx:</strong> ≤ ${fmt(p.rmax)}<br>
         <strong>Diferença:</strong> entre ${fmt(p.dif_min)} e ${fmt(p.dif_max)}
       </p>`;
-  }
-
-  // =========================================================
-  // NOVO: PREENCHIMENTO AUTOMÁTICO + TEXTO DE PADRÃO (HINT)
-  // =========================================================
-  const parametros = PARAM_DEFAULTS[tipo];
-  if (parametros) {
-    for (const [idBase, valor] of Object.entries(parametros)) {
-      const inputMin = document.getElementById(`${idBase}-min`);
-      const inputMax = document.getElementById(`${idBase}-max`);
-      
-      // Utiliza a função fmt() do sistema para formatar (ex: 20000 vira 20.000)
-      const valorFormatado = (typeof fmt === 'function') ? fmt(valor) : valor;
-      
-      if (inputMin) {
-        inputMin.value = valor;
-        
-        // Localiza a <label> e atualiza o texto do Mínimo
-        const labelMin = inputMin.previousElementSibling;
-        if (labelMin && labelMin.tagName === 'LABEL') {
-          labelMin.innerHTML = `Mínimo &nbsp;<span style="color:var(--text3);text-transform:none;font-weight:400">(padrão: ${valorFormatado})</span>`;
-        }
-      }
-      
-      if (inputMax) {
-        inputMax.value = valor;
-        
-        // Localiza a <label> e atualiza o texto do Máximo
-        const labelMax = inputMax.previousElementSibling;
-        if (labelMax && labelMax.tagName === 'LABEL') {
-          labelMax.innerHTML = `Máximo &nbsp;<span style="color:var(--text3);text-transform:none;font-weight:400">(padrão: ${valorFormatado})</span>`;
-        }
-      }
-    }
   }
 }
 
@@ -365,21 +234,23 @@ async function previewDemanda() {
 async function salvarDemanda() {
   const modo = document.getElementById('dem-modo').value;
   const tipo = document.getElementById('dem-tipo').value;
-  const v    = validarDemParams();
-  if (!v.ok) { showAlert('dem-err', v.msg); return; }
-  hideAlert('dem-err');
-  const body = { tipo_demanda: tipo, modo_demanda: modo,
-                 enfase_tend_ciclic: document.getElementById('dem-enfase').value };
-  if (modo === 'automatico') body.params = { [tipo]: v.params };
-  else {
-    const vals = [...document.querySelectorAll('.manual-val')].map(el => parseInt(el.value) || 0);
-    body.demanda_manual = vals;
-  }
-  await fetch(`${API}/moderador/config`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-  });
-  alert('✅ Configuração de demanda salva!');
-  atualizarTopbar();
+  //const v    = validarDemParams();
+  //if (!v.ok) { showAlert('dem-err', v.msg); return; }
+  //hideAlert('dem-err');
+  //const body = { tipo_demanda: tipo, modo_demanda: modo,
+  //               enfase_tend_ciclic: document.getElementById('dem-enfase').value };
+  //if (modo === 'automatico') body.params = { [tipo]: v.params };
+  //else {
+  //  const vals = [...document.querySelectorAll('.manual-val')].map(el => parseInt(el.value) || 0);
+  //  body.demanda_manual = vals;
+  //}
+  //await fetch(`${API}/moderador/config`, {
+  //  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  //});
+ alert(`✅ Configuração de demanda salva!\n\nModo : ${modo}\nTipo : ${tipo}`);
+ atualizarTopbar();
+ navegarPara('parametros');
+ document.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
 }
 
 // ── EMPRESA ───────────────────────────────────────────
@@ -565,6 +436,153 @@ async function alterarSenha() {
   showAlert('senha-ok', '✅ Senha alterada com sucesso!', 'ok');
   document.getElementById('nova-senha').value = '';
 }
+
+// ── PARÂMETROS DO MODELO ─────────────────────────────────────────
+
+// Valores padrão — espelham a planilha do orientador 
+const PARAM_DEFAULTS = {
+  //Preço de venda do produto:
+  preco_venda_prod_min: 50, preco_venda_prod_max: 300,
+  //Estoque inicial:
+  estoque_ini_min: 0, estoque_ini_max: 10000,
+  //Custo de armazenagem (estoque):
+  custo_armaz_min: 0, custo_armaz_max: 100,
+  //Capacidade produtiva inicial (produção regular):
+  capac_produ_min: 10000, capac_produ_max: 30000,
+  //Produção regular - Custo fixo:
+  produ_regul_custo_fixo_min: 100000, produ_regul_custo_fixo_max: 1000000,
+  //Produção regular - Custo variável:
+  produ_regul_custo_varia_min: 50, produ_regul_custo_varia_max: 200,
+  //Produção em hora extra (Custo variável):
+  produ_hora_extra_custo_varia_min: 50, produ_hora_extra_custo_varia_max: 280,
+  //Nível máximo permitido de hora extra:
+  hora_extra_max_min: 0, hora_extra_max_max: 25,
+  //Perda de produtividade na produção em hora extra:
+  perda_produ_hora_extra_min: 0, perda_produ_hora_extra_max: 20,
+  //Produção em um turno extra Custo fixo:
+  produ_turno_extra_custo_fixo_min: 100000, produ_turno_extra_custo_fixo_max: 800000,
+  //Produção em um turno extra Custo variável:
+  produ_turno_extra_custo_varia_min: 50, produ_turno_extra_custo_varia_max: 200,
+  //Acréscimo de capacidade - 5.000 unidades:
+  acres_capac_5_min: 100000, acres_capac_5_max: 300000,
+  //Acréscimo de capacidade - 10.000 unidades:
+  acres_capac_10_min: 150000, acres_capac_10_max: 500000,
+  //Acréscimo de capacidade - 15.000 unidades:
+  acres_capac_15_min: 250000, acres_capac_15_max: 250000,
+  // Terceirização (Custo variável):
+  terce_custo_varia_min: 50, terce_custo_varia_max: 200,
+  //Limite máximo da produção em terceirização:
+  limit_max_produ_terce_min: 10000, limit_max_produ_terce_max: 30000,
+  //Capital disponível para acréscimo de capacidade:
+  capit_dispo_acres_capac_min: 500000, capit_dispo_acres_capac_max: 1500000,
+  //Taxa de rendimento do capital disponível:
+  taxa_rendi_capit_dispo_min: 0, taxa_rendi_capit_dispo_max: 4,
+  // Redução do custo variável devido ao aumento da capacidade produtiva:
+  reduc_custo_varia_aumen_capac_produ_min: 0, reduc_custo_varia_aumen_capac_produ_max: 10,
+  //Perda de clientes:
+  perda_clien_min: 0, perda_clien_max: 100,
+};
+
+// IDs dos inputs — sufixo bate com o id no HTML (p-<chave>)
+//const PARAM_IDS = Object.keys(PARAM_DEFAULTS);
+
+// 1. Criamos a função que vai fazer essa atualização
+function preencherValoresPadrao() {
+  
+  // Pegamos a lista de nomes igual fizemos antes
+  const chaves = Object.keys(PARAM_DEFAULTS);
+
+  // Fazemos um "loop" (forEach) para passar por cada nome da lista
+  chaves.forEach(chave => {
+    
+    // O JavaScript procura no HTML um elemento que tenha o ID igual ao nome da chave
+    const inputNoHtml = document.getElementById(chave);
+
+    // Se ele achar esse input na tela...
+    if (inputNoHtml) {
+      // 1. Atualiza o placeholder (texto cinza de fundo)
+      inputNoHtml.placeholder = PARAM_DEFAULTS[chave];
+      
+      // 2. BÔNUS: Como seu campo é "readonly", é ideal definir o 'value' também, 
+      // para que o número seja o valor real do campo e não apenas um fundo invisível.
+      inputNoHtml.value = PARAM_DEFAULTS[chave]; 
+    }
+    
+  });
+}
+
+// 2. Executamos a função assim que a tela for carregada
+
+
+async function carregarParametros() {
+  //ocument.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
+  // 2. Executamos a função assim que a tela for carregada
+  preencherValoresPadrao();
+  const cfg = await fetch(`${API}/moderador/config`).then(r => r.json());
+  const p   = cfg.parametros_modelo || {};
+  PARAM_IDS.forEach(k => {
+    const el = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+    if (el) el.value = (p[k] !== undefined) ? p[k] : PARAM_DEFAULTS[k];
+  });
+}
+
+function _coletarParametros() {
+  const out = {};
+  PARAM_IDS.forEach(k => {
+    const el  = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+    if (!el) return;
+    // campos reais (taxa e redcv) → parseFloat; demais → parseInt
+    out[k] = (k.startsWith('taxa') || k.startsWith('redcv'))
+      ? parseFloat(el.value)
+      : parseInt(el.value);
+  });
+  return out;
+}
+
+function _validarParametros(p) {
+  for (const grupo of [
+    ['preco_min','preco_max'], ['est_ini_min','est_ini_max'],
+    ['armazen_min','armazen_max'], ['cap_ini_min','cap_ini_max'],
+    ['reg_cf_min','reg_cf_max'], ['reg_cv_min','reg_cv_max'],
+    ['he_cv_min','he_cv_max'], ['he_max_min','he_max_max'],
+    ['he_perda_min','he_perda_max'], ['te_cf_min','te_cf_max'],
+    ['te_cv_min','te_cv_max'], ['acr5_min','acr5_max'],
+    ['acr10_min','acr10_max'], ['acr15_min','acr15_max'],
+    ['capital_min','capital_max'], ['taxa_min','taxa_max'],
+    ['redcv_min','redcv_max'], ['terc_cv_min','terc_cv_max'],
+    ['terc_lim_min','terc_lim_max'], ['perda_cli_min','perda_cli_max'],
+  ]) {
+    const [kMin, kMax] = grupo;
+    if (isNaN(p[kMin]) || isNaN(p[kMax]))
+      return { ok: false, msg: `Preencha os campos de "${kMin.replace(/_/g,' ')}" corretamente.` };
+    if (p[kMin] > p[kMax])
+      return { ok: false, msg: `Mínimo não pode ser maior que Máximo em "${kMin.replace(/_/g,' ')}".` };
+  }
+  return { ok: true };
+}
+
+async function salvarParametros() {
+  const p = _coletarParametros();
+  const v = _validarParametros(p);
+  if (!v.ok) { showAlert('param-err', v.msg); hideAlert('param-ok'); return; }
+  hideAlert('param-err');
+  await fetch(`${API}/moderador/config`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parametros_modelo: p }),
+  });
+  showAlert('param-ok', '✅ Parâmetros salvos com sucesso!', 'ok');
+}
+
+function resetarParametros() {
+  if (!confirm('Restaurar todos os parâmetros para os valores padrão?')) return;
+  PARAM_IDS.forEach(k => {
+    const el = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+    if (el) el.value = PARAM_DEFAULTS[k];
+  });
+  showAlert('param-ok', 'ℹ️ Padrões restaurados — clique em Salvar para confirmar.', 'ok');
+}
+
 
 // ── INIT ──────────────────────────────────────────────
 atualizarTopbar();
