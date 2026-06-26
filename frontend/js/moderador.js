@@ -251,6 +251,78 @@ async function salvarDemanda() {
  atualizarTopbar();
  navegarPara('parametros');
  document.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
+
+if (modo === 'automatico') {
+  if(modo === 'automatico' && tipo =='uniforme'){
+    preencherValoresPadrao(PARAM_UNIF);
+  }
+  if(modo === 'automatico' && tipo =='tendencia'){
+    preencherValoresPadrao(PARAM_TEND);
+  }
+  if(modo === 'automatico' && tipo =='ciclicidade'){
+    preencherValoresPadrao(PARAM_CICL);
+  }
+  if(modo === 'automatico' && tipo =='tend_ciclic'){
+    preencherValoresPadrao(PARAM_TENDCICL);
+  }
+  document.getElementById('preco_venda_prod_valor').readOnly = true;
+  document.getElementById('estoque_ini_valor').readOnly = true;
+  document.getElementById('custo_armaz_valor').readOnly = true;
+  document.getElementById('capac_produ_valor').readOnly = true;
+  document.getElementById('produ_regul_custo_fixo_valor').readOnly = true;
+  document.getElementById('produ_regul_custo_varia_valor').readOnly = true;
+  document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = true;
+  document.getElementById('hora_extra_max_valor').readOnly = true;
+  document.getElementById('perda_produ_hora_extra_valor').readOnly = true;
+  document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = true;
+  document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = true;
+  document.getElementById('acres_capac_5_valor').readOnly = true;
+  document.getElementById('acres_capac_10_valor').readOnly = true;
+  document.getElementById('acres_capac_15_valor').readOnly = true;
+  document.getElementById('terce_custo_varia_valor').readOnly = true;
+  document.getElementById('limit_max_produ_terce_valor').readOnly = true;
+  document.getElementById('capit_dispo_acres_capac_valor').readOnly = true;
+  document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = true;
+  document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = true;
+  document.getElementById('perda_clien_valor').readOnly = true; 
+} else {
+  document.getElementById('preco_venda_prod_valor').readOnly = false;
+  document.getElementById('estoque_ini_valor').readOnly = false;
+  document.getElementById('custo_armaz_valor').readOnly = false;
+  document.getElementById('capac_produ_valor').readOnly = false;
+  document.getElementById('produ_regul_custo_fixo_valor').readOnly = false;
+  document.getElementById('produ_regul_custo_varia_valor').readOnly = false;
+  document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = false;
+  document.getElementById('hora_extra_max_valor').readOnly = false;
+  document.getElementById('perda_produ_hora_extra_valor').readOnly = false;
+  document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = false;
+  document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = false;
+  document.getElementById('acres_capac_5_valor').readOnly = false;
+  document.getElementById('acres_capac_10_valor').readOnly = false;
+  document.getElementById('acres_capac_15_valor').readOnly = false;
+  document.getElementById('terce_custo_varia_valor').readOnly = false;
+  document.getElementById('limit_max_produ_terce_valor').readOnly = false;
+  document.getElementById('capit_dispo_acres_capac_valor').readOnly = false;
+  document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = false;
+  document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = false;
+  document.getElementById('perda_clien_valor').readOnly = false;
+}
+
+  if(modo === 'automatico' && tipo =='uniforme'){
+    preencherValoresPadrao(PARAM_UNIF);
+  }
+  if(modo === 'automatico' && tipo =='tendencia'){
+    preencherValoresPadrao(PARAM_TEND);
+  }
+  if(modo === 'automatico' && tipo =='ciclicidade'){
+    preencherValoresPadrao(PARAM_CICL);
+  }
+  if(modo === 'automatico' && tipo =='tend_ciclic'){
+    preencherValoresPadrao(PARAM_TENDCICL);
+  }
+
+
+
 }
 
 // ── EMPRESA ───────────────────────────────────────────
@@ -268,7 +340,7 @@ async function carregarEmpresa() {
     const el = document.getElementById(id);
     if (el && val !== undefined) el.value = val;
   });
-}
+};
 
 async function salvarEmpresa() {
   const empresa = {
@@ -483,14 +555,186 @@ const PARAM_DEFAULTS = {
   perda_clien_min: 0, perda_clien_max: 100,
 };
 
+const PARAM_UNIF = {
+  //Preço de venda do produto:
+  preco_venda_prod_valor: 100, 
+  //Estoque inicial:
+  estoque_ini_valor: 1000,
+  //Custo de armazenagem (estoque):
+  custo_armaz_valor: 15,
+  //Capacidade produtiva inicial (produção regular):
+  capac_produ_valor: 28000,
+  //Produção regular - Custo fixo:
+  produ_regul_custo_fixo_valor: 580000,
+  //Produção regular - Custo variável:
+  produ_regul_custo_varia_valor: 60,
+  //Produção em hora extra (Custo variável):
+  produ_hora_extra_custo_varia_valor: 90,
+  //Nível máximo permitido de hora extra:
+  hora_extra_max_valor: 20,
+  //Perda de produtividade na produção em hora extra:
+  perda_produ_hora_extra_valor: 10,
+  //Produção em um turno extra Custo fixo:
+  produ_turno_extra_custo_fixo_valor: 380000,
+  //Produção em um turno extra Custo variável:
+  produ_turno_extra_custo_varia_valor: 70,
+  //Acréscimo de capacidade - 5.000 unidades:
+  acres_capac_5_valor: 200000,
+  //Acréscimo de capacidade - 10.000 unidades:
+  acres_capac_10_valor: 350000, 
+  //Acréscimo de capacidade - 15.000 unidades:
+  acres_capac_15_valor: 500000, 
+  // Terceirização (Custo variável):
+  terce_custo_varia_valor: 86, 
+  //Limite máximo da produção em terceirização:
+  limit_max_produ_terce_valor: 20000, 
+  //Capital disponível para acréscimo de capacidade:
+  capit_dispo_acres_capac_valor: 700000,
+  //Taxa de rendimento do capital disponível:
+  taxa_rendi_capit_dispo_valor: 3.5, 
+  // Redução do custo variável devido ao aumento da capacidade produtiva:
+  reduc_custo_varia_aumen_capac_produ_valor: 1.5, 
+  //Perda de clientes:
+  perda_clien_valor: 80, 
+};
+
+
+const PARAM_TEND = {
+  //Preço de venda do produto:
+  preco_venda_prod_valor: 105, 
+  //Estoque inicial:
+  estoque_ini_valor: 1000,
+  //Custo de armazenagem (estoque):
+  custo_armaz_valor: 10,
+  //Capacidade produtiva inicial (produção regular):
+  capac_produ_valor: 20000,
+  //Produção regular - Custo fixo:
+  produ_regul_custo_fixo_valor: 480000,
+  //Produção regular - Custo variável:
+  produ_regul_custo_varia_valor: 63,
+  //Produção em hora extra (Custo variável):
+  produ_hora_extra_custo_varia_valor: 95,
+  //Nível máximo permitido de hora extra:
+  hora_extra_max_valor: 20,
+  //Perda de produtividade na produção em hora extra:
+  perda_produ_hora_extra_valor: 2,
+  //Produção em um turno extra Custo fixo:
+  produ_turno_extra_custo_fixo_valor: 190000,
+  //Produção em um turno extra Custo variável:
+  produ_turno_extra_custo_varia_valor: 68,
+  //Acréscimo de capacidade - 5.000 unidades:
+  acres_capac_5_valor: 200000,
+  //Acréscimo de capacidade - 10.000 unidades:
+  acres_capac_10_valor: 350000, 
+  //Acréscimo de capacidade - 15.000 unidades:
+  acres_capac_15_valor: 500000, 
+  // Terceirização (Custo variável):
+  terce_custo_varia_valor: 94, 
+  //Limite máximo da produção em terceirização:
+  limit_max_produ_terce_valor: 20000, 
+  //Capital disponível para acréscimo de capacidade:
+  capit_dispo_acres_capac_valor: 700000,
+  //Taxa de rendimento do capital disponível:
+  taxa_rendi_capit_dispo_valor: 3.5, 
+  // Redução do custo variável devido ao aumento da capacidade produtiva:
+  reduc_custo_varia_aumen_capac_produ_valor: 2, 
+  //Perda de clientes:
+  perda_clien_valor: 70, 
+};
+
+const PARAM_CICL = {
+  //Preço de venda do produto:
+  preco_venda_prod_valor: 95, 
+  //Estoque inicial:
+  estoque_ini_valor: 1000,
+  //Custo de armazenagem (estoque):
+  custo_armaz_valor: 12,
+  //Capacidade produtiva inicial (produção regular):
+  capac_produ_valor: 24000,
+  //Produção regular - Custo fixo:
+  produ_regul_custo_fixo_valor: 515000,
+  //Produção regular - Custo variável:
+  produ_regul_custo_varia_valor: 57,
+  //Produção em hora extra (Custo variável):
+  produ_hora_extra_custo_varia_valor: 85,
+  //Nível máximo permitido de hora extra:
+  hora_extra_max_valor: 20,
+  //Perda de produtividade na produção em hora extra:
+  perda_produ_hora_extra_valor: 5,
+  //Produção em um turno extra Custo fixo:
+  produ_turno_extra_custo_fixo_valor: 320000,
+  //Produção em um turno extra Custo variável:
+  produ_turno_extra_custo_varia_valor: 65,
+  //Acréscimo de capacidade - 5.000 unidades:
+  acres_capac_5_valor: 200000,
+  //Acréscimo de capacidade - 10.000 unidades:
+  acres_capac_10_valor: 350000, 
+  //Acréscimo de capacidade - 15.000 unidades:
+  acres_capac_15_valor: 500000, 
+  // Terceirização (Custo variável):
+  terce_custo_varia_valor: 84, 
+  //Limite máximo da produção em terceirização:
+  limit_max_produ_terce_valor: 20000, 
+  //Capital disponível para acréscimo de capacidade:
+  capit_dispo_acres_capac_valor: 700000,
+  //Taxa de rendimento do capital disponível:
+  taxa_rendi_capit_dispo_valor: 3.5, 
+  // Redução do custo variável devido ao aumento da capacidade produtiva:
+  reduc_custo_varia_aumen_capac_produ_valor: 2, 
+  //Perda de clientes:
+  perda_clien_valor: 70, 
+};
+
+const PARAM_TENDCICL = {
+  //Preço de venda do produto:
+  preco_venda_prod_valor: 108, 
+  //Estoque inicial:
+  estoque_ini_valor: 1000,
+  //Custo de armazenagem (estoque):
+  custo_armaz_valor: 10,
+  //Capacidade produtiva inicial (produção regular):
+  capac_produ_valor: 20000,
+  //Produção regular - Custo fixo:
+  produ_regul_custo_fixo_valor: 480000,
+  //Produção regular - Custo variável:
+  produ_regul_custo_varia_valor: 65,
+  //Produção em hora extra (Custo variável):
+  produ_hora_extra_custo_varia_valor: 96,
+  //Nível máximo permitido de hora extra:
+  hora_extra_max_valor: 20,
+  //Perda de produtividade na produção em hora extra:
+  perda_produ_hora_extra_valor: 2,
+  //Produção em um turno extra Custo fixo:
+  produ_turno_extra_custo_fixo_valor: 195000,
+  //Produção em um turno extra Custo variável:
+  produ_turno_extra_custo_varia_valor: 70,
+  //Acréscimo de capacidade - 5.000 unidades:
+  acres_capac_5_valor: 200000,
+  //Acréscimo de capacidade - 10.000 unidades:
+  acres_capac_10_valor: 350000, 
+  //Acréscimo de capacidade - 15.000 unidades:
+  acres_capac_15_valor: 500000, 
+  // Terceirização (Custo variável):
+  terce_custo_varia_valor: 92, 
+  //Limite máximo da produção em terceirização:
+  limit_max_produ_terce_valor: 20000, 
+  //Capital disponível para acréscimo de capacidade:
+  capit_dispo_acres_capac_valor: 700000,
+  //Taxa de rendimento do capital disponível:
+  taxa_rendi_capit_dispo_valor: 3.5, 
+  // Redução do custo variável devido ao aumento da capacidade produtiva:
+  reduc_custo_varia_aumen_capac_produ_valor: 5, 
+  //Perda de clientes:
+  perda_clien_valor: 50, 
+};
+
 // IDs dos inputs — sufixo bate com o id no HTML (p-<chave>)
 //const PARAM_IDS = Object.keys(PARAM_DEFAULTS);
 
-// 1. Criamos a função que vai fazer essa atualização
-function preencherValoresPadrao() {
+function preencherValoresPadrao(PARAM) {
   
   // Pegamos a lista de nomes igual fizemos antes
-  const chaves = Object.keys(PARAM_DEFAULTS);
+  const chaves = Object.keys(PARAM);
 
   // Fazemos um "loop" (forEach) para passar por cada nome da lista
   chaves.forEach(chave => {
@@ -501,15 +745,16 @@ function preencherValoresPadrao() {
     // Se ele achar esse input na tela...
     if (inputNoHtml) {
       // 1. Atualiza o placeholder (texto cinza de fundo)
-      inputNoHtml.placeholder = PARAM_DEFAULTS[chave];
+      inputNoHtml.placeholder = PARAM[chave];
       
       // 2. BÔNUS: Como seu campo é "readonly", é ideal definir o 'value' também, 
       // para que o número seja o valor real do campo e não apenas um fundo invisível.
-      inputNoHtml.value = PARAM_DEFAULTS[chave]; 
+      inputNoHtml.value = PARAM[chave]; 
     }
     
   });
 }
+// 1. Criamos a função que vai fazer essa atualização
 
 // 2. Executamos a função assim que a tela for carregada
 
@@ -517,7 +762,7 @@ function preencherValoresPadrao() {
 async function carregarParametros() {
   //ocument.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
   // 2. Executamos a função assim que a tela for carregada
-  preencherValoresPadrao();
+  preencherValoresPadrao(PARAM_DEFAULTS);
   const cfg = await fetch(`${API}/moderador/config`).then(r => r.json());
   const p   = cfg.parametros_modelo || {};
   PARAM_IDS.forEach(k => {
@@ -562,16 +807,18 @@ function _validarParametros(p) {
 }
 
 async function salvarParametros() {
-  const p = _coletarParametros();
-  const v = _validarParametros(p);
-  if (!v.ok) { showAlert('param-err', v.msg); hideAlert('param-ok'); return; }
-  hideAlert('param-err');
-  await fetch(`${API}/moderador/config`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ parametros_modelo: p }),
-  });
-  showAlert('param-ok', '✅ Parâmetros salvos com sucesso!', 'ok');
+
+  const min = parseInt(document.getElementById('preco_venda_prod_min').value);
+  const max = parseInt(document.getElementById('preco_venda_prod_max').value);
+  const valor = parseInt(document.getElementById('preco_venda_prod_valor').value);
+
+  if (valor < min || valor > max) {
+    // Se o valor for menor que o mínimo OU maior que o máximo, barramos!
+    alert(`Erro! O valor digitado fora do período permitido.`);
+
+  }else{
+    alert('Salvo!')
+  }
 }
 
 function resetarParametros() {
