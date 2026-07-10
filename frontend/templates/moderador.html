@@ -10,6 +10,21 @@
 /* ── LAYOUT MODERADOR ── */
 .mod-layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
 
+/* ── PARÂMETROS DO MODELO ── */
+.param-grid  { display: flex; flex-direction: column; gap: 0; }
+.param-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; padding: 10px 0; }
+.param-label { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.param-name  { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.param-unit  { font-size: 11px; color: var(--text3); font-style: italic; }
+.param-obs   { font-size: 11px; color: var(--text3); grid-column: 1 / -1; padding-bottom: 2px; }
+.param-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+.param-hint  { font-size: 11px; color: var(--text3); font-weight: 400; text-transform: none; }
+.title {display: block; font-size: 14px; font-weight: 600; color: var(--text2);
+               text-transform: uppercase; letter-spacing: .06em; margin: 30px 2px 2px 2px; }
+.mb-16 { margin-bottom: 16px; }
+.mt-16 { margin-top: 16px; }
+
+
 /* Sidebar */
 .sidebar {
   background: var(--surface); border-right: 1px solid var(--border);
@@ -122,6 +137,9 @@
         <button class="nav-item" data-page="demanda">
           <span class="ni-icon">📈</span> Demanda
         </button>
+        <button class="nav-item" data-page="parametros">
+          <span class="ni-icon">⚙️</span> Parâmetros
+        </button>
         <button class="nav-item" data-page="empresa">
           <span class="ni-icon">🏭</span> Empresa
         </button>
@@ -199,10 +217,24 @@
               <option value="automatico">Automático — cada equipe recebe sua própria demanda gerada</option>
               <option value="manual">Manual — moderador define os 16 valores (8 hist. + 8 futura)</option>
             </select>
+            <div class="form-group"></div>
+              <label>Tipo de Perfil</label>
+              <select id="dem-tipo" >
+                  <option value="uniforme">Uniforme</option>
+                  <option value="tendencia">Tendência crescente</option>
+                  <option value="ciclicidade">Ciclicidade</option>
+                  <option value="tend_ciclic">Tendência + Ciclicidade</option>
+                </select>
+            </div> 
+              <div class="btn-group mt-16" class="nav-item" >
+                <button class="btn btn-primary" onclick="salvarDemanda()" data-page="parametros">💾 Salvar Configuração</button>
+              </div>
           </div>
         </div>
 
-        <!-- Automático -->
+
+      
+        <!-- Automático --> <!--
         <div id="dem-auto" class="card mb-16">
           <div class="section-label">Perfil de Demanda</div>
           <div class="form-row">
@@ -238,34 +270,421 @@
             </div>
           </div>
           <div class="alert alert-err" id="dem-err"></div>
-        </div>
+        </div> -->
 
-        <!-- Manual -->
+        <!-- Manual --> <!--
         <div id="dem-manual" class="card mb-16" style="display:none">
           <div class="section-label">Valores Manuais (todas equipes usam os mesmos)</div>
           <p class="text-sm text-muted mb-16">Preencha 16 valores: 8 para histórico (H1–H8) e 8 para a demanda futura (F1–F8)</p>
           <div id="dem-manual-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
-        </div>
+        </div> -->
 
-        <!-- Preview -->
-        <div class="demand-layout">
+        <!-- Preview --> <!--
           <div>
-            <button class="btn btn-ghost mb-16" onclick="previewDemanda()">🔄 Gerar Preview</button>
-            <div class="chart-box">
-              <h4>Preview — Demanda Gerada</h4>
-              <canvas id="chart-dem-preview" height="200"></canvas>
+            <div>
+              <button class="btn btn-ghost mb-16" onclick="previewDemanda()">🔄 Gerar Preview</button>
+              <div class="chart-box">
+                <h4>Preview — Demanda Gerada</h4>
+                <canvas id="chart-dem-preview" height="200"></canvas>
+              </div>
             </div>
           </div>
+          
           <div class="card">
             <div class="section-label">Lógica Aplicada</div>
             <div id="dem-descricao" class="text-sm text-muted" style="line-height:1.8"></div>
           </div>
-        </div>
+        </div>-->
 
-        <div class="btn-group mt-16">
-          <button class="btn btn-primary" onclick="salvarDemanda()">💾 Salvar Configuração</button>
+      <!-- ══ PARÂMETROS DO MODELO ══ -->
+      <div id="page-parametros" class="page-content" style="display:none">
+        <div class="page-header">
+          <h1>Parâmetros do Modelo <span id="info-demanda-salva"></span></h1>
+          <p>Restrições e valores dos parâmetros entregues às equipes. <!--Mín = Máx fixa o valor; intervalos diferentes permitem variação.--></p>
+        </div>
+        <!-- style="font-size: 16px; color: gray; font-weight: normal;-->
+        <!-- Alerta de erro/sucesso -->
+        <div class="alert alert-err" id="param-err" style="display:none"></div>
+        <div class="alert alert-ok"  id="param-ok"  style="display:none"></div>
+        <!-- ── CARD 1: Produto, Estoque, Armazenagem ── -->
+        <div class="card mb-16">
+          <div class="param-inputs">
+            <div class="title">Preço de venda do produto
+            <p class="param-unit mb-16">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="preco_venda_prod_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="preco_venda_prod_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="preco_venda_prod_valor" />
+            </div>
+          </div>
+          <!-- Estoque Inicial -->
+          <div class="param-inputs"> 
+            <div class="title">Estoque inicial
+            <p class="param-unit mb-16">Unidade:[Unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="estoque_ini_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="estoque_ini_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="estoque_ini_valor" readonly/>
+            </div>
+          </div>
+          <!-- Custo de Armazenagem -->
+          <div class="param-inputs">
+            <div class="title">Custo de armazenagem (estoque)
+            <p class="param-unit mb-16">Unidade:[$/unidade por trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="custo_armaz_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="custo_armaz_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="custo_armaz_valor" readonly/>
+            </div>
+          </div>
+          <!-- Capacidade produtiva inicial (produção regular) -->
+          <div class="param-inputs">
+            <div class="title">Capacidade produtiva inicial (produção regular)
+            <p class="param-unit mb-16">Unidade:[Unidades/trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="capac_produ_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="capac_produ_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="capac_produ_valor" readonly/>
+            </div>
+          </div>
+          <!-- Produção regular - custo fixo: -->
+          <div class="param-inputs">
+            <div class="title">Produção regular - custo fixo 
+              <span title="O custo fixo aumenta proporcionalmente com o acréscimo de capacidade (exemplo: X% de acréscimo, X% de aumento)" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[$/trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_fixo_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_fixo_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_fixo_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Produção regular - custo variável: -->
+          <div class="param-inputs">
+            <div class="title">Produção regular - custo variável
+            <p class="param-unit mb-16">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_varia_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_varia_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_varia_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Produção em hora extra (Custo variável): -->
+          <div class="param-inputs">
+            <div class="title">Produção em hora extra (Custo variável)
+            <p class="param-unit mb-16">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="produ_hora_extra_custo_varia_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="produ_hora_extra_custo_varia_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_hora_extra_custo_varia_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Nível máximo permitido de hora extra: -->
+          <div class="param-inputs">
+            <div class="title">Nível máximo permitido de hora extra
+              <span title="A porcentagem selecionada é aplicada à capacidade produtiva da produção regular, resultando na quantidade máxima que pode ser planejada na produção em hora extra; não é permitida hora extra no turno extra caso este seja adotado, pois a empresa é fechada após este turno" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[%] Variável:Inteiro (%)</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="hora_extra_max_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="hora_extra_max_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="hora_extra_max_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Perda de produtividade na produção em hora extra: -->
+          <div class="param-inputs">
+            <div class="title">Perda de produtividade na produção em hora extra
+              <span title="Perda aplicada à produção planejada em hora extra devido à queda na produtividade; sendo maior do que zero, a produção real em hora extra será menor do que a planejada (no entanto, o custo variável da produção em hora extra considera a produção planejada: os funcionários consumirão o tempo total planejado de hora extra, mas produzirão uma quantidade menor do que a planejada devido a esta perda)" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[%] Variável:Inteiro (%)</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="perda_produ_hora_extra_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="perda_produ_hora_extra_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="perda_produ_hora_extra_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Produção em um turno extra - custo fixo -->
+          <div class="param-inputs">
+            <div class="title">Produção em um turno extra - custo fixo
+              <span title="Capacidade produtiva em um turno extra = 100% da capacidade produtiva em produção regular; o custo fixo aumenta proporcionalmente com o acréscimo de capacidade (exemplo: X% de acréscimo, X% de aumento); o turno extra utiliza as mesmas instalações do turno regular (produção regular), parte das quais já depreciadas, fazendo com que o seu custo fixo seja menor" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[$/trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_fixo_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_fixo_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_fixo_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Produção em um turno extra - custo variável -->
+          <div class="param-inputs">
+            <div class="title">Produção em um turno extra - custo variável
+            <p class="param-unit mb-16">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_varia_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_varia_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_varia_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Acréscimo de capacidade - 5.000 unidades: -->
+          <div class="param-inputs">
+            <div class="title">Acréscimo de capacidade - 5.000 unidades
+              <span title="Se o dispêndio ocorre no trimestre (n), o acréscimo de capacidade é efetivado no trimestre (n+1);" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_5_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_5_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_5_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Acréscimo de capacidade - 10.000 unidades: -->
+          <div class="param-inputs">
+            <div class="title">Acréscimo de capacidade - 10.000 unidades
+              <span title="Os acréscimos de capacidade produtiva que ocorrem em trimestres diferentes são acumulados;" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_10_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_10_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_10_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Acréscimo de capacidade - 15.000 unidades: -->
+          <div class="param-inputs">
+            <div class="title">Acréscimo de capacidade - 15.000 unidades
+              <span title="Os acréscimos de capacidade produtiva afetam tanto a produção regular quanto a produção em um turno extra" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_15_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_15_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_15_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Terceirização (Custo variável): -->
+          <div class="param-inputs">
+            <div class="title">Terceirização (Custo variável)
+            <p class="param-unit mb-16">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="terce_custo_varia_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="terce_custo_varia_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="terce_custo_varia_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Limite máximo da produção em terceirização: -->
+          <div class="param-inputs">
+            <div class="title">Limite máximo da produção em terceirização
+            <p class="param-unit mb-16">Unidade:[Unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="limit_max_produ_terce_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="limit_max_produ_terce_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="limit_max_produ_terce_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Capital disponível para acréscimo de capacidade: -->
+          <div class="param-inputs">
+            <div class="title">Capital disponível para acréscimo de capacidade
+              <span title="Quando não usado integralmente, fica rendendo a uma determinada taxa" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="capit_dispo_acres_capac_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="capit_dispo_acres_capac_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="capit_dispo_acres_capac_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Taxa de rendimento do capital disponível: -->
+          <div class="param-inputs">
+            <div class="title">Taxa de rendimento do capital disponível
+            <p class="param-unit mb-16">Unidade:[%/trimestre] Variável:Real (% com até 1 casa decimal)</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="taxa_rendi_capit_dispo_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="taxa_rendi_capit_dispo_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="taxa_rendi_capit_dispo_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Redução do custo variável devido ao aumento da capacidade produtiva -->
+          <div class="param-inputs">
+            <div class="title">Redução do custo variável devido ao aumento da capacidade produtiva
+              <span title="Redução percentual do custo variável (para produção regular e turno extra) a cada aumento de 3.000 unidades da capacidade produtiva" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[%/3.000 unidades] Variável:Real (% com até 1 casa decimal)</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Perda de clientes: -->
+          <div class="param-inputs">
+            <div class="title">Perda de clientes:
+              <span title="Porcentagem da demanda real não atendida em um dado trimestre que será debitada da demanda real dos trimestres seguintes (representando clientes que decidem trocar de fornecedor pelo não atendimento/atendimento parcial); as perdas que ocorrem em trimestres diferentes são acumuladas" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit mb-16">Unidade:[%] Variável:Inteiro (%)</p>
+            </div>
+            <div class="form-group">
+              <label>Mínimo <span class="param-hint"></span></label>
+              <input type="number" id="perda_clien_min" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Máximo <span class="param-hint"></span></label>
+              <input type="number" id="perda_clien_max" readonly/>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="perda_clien_valor" readonly/>
+            </div>
+          </div> 
+          <!-- Botão Salvar -->
+          <div class="btn-group mt-16">
+            <button class="btn btn-primary" onclick="salvarParametros()">💾 Salvar Parâmetros</button>
+            <!--<button class="btn btn-ghost"   onclick="resetarParametros()">↩ Restaurar Padrões</button>-->
+          </div>
         </div>
       </div>
+<!-- ══ fim PARÂMETROS ══ -->
 
       <!-- ══ EMPRESA ══ -->
       <div id="page-empresa" class="page-content" style="display:none">
