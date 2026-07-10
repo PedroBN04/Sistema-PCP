@@ -340,8 +340,6 @@ async function submeterPlano() {
         producao_regular:  +document.getElementById('pl-prod').value || 0,
         horas_extras:      +document.getElementById('pl-he').value   || 0,
         subcontratacao:    +document.getElementById('pl-sub').value  || 0,
-        contratacoes:      +document.getElementById('pl-cont').value || 0,
-        demissoes:         +document.getElementById('pl-dem').value  || 0,
       })
     });
     const d = await r.json();

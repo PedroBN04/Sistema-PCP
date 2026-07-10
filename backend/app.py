@@ -49,8 +49,44 @@ def default_config():
             "tendencia":   {"min": 35000, "max": 45000, "rest_min": 30000, "rest_max": 50000, "dif_min": 5000,  "dif_max": 15000},
             "ciclicidade": {"min": 37000, "max": 44000, "rest_min": 30000, "rest_max": 50000, "dif_min": 5000,  "dif_max": 10000},
             "tend_ciclic": {"min": 32500, "max": 47500, "rest_min": 30000, "rest_max": 50000, "dif_min": 10000, "dif_max": 18000}
-        }
+        },
+        # valor único escolhido pelo moderador para cada parâmetro (min == max == valor)
+        "parametros_modelo": {
+            "preco_min": 100,       "preco_max": 100,
+            "est_ini_min": 1000,    "est_ini_max": 1000,
+            "armazen_min": 15,      "armazen_max": 15,
+            "cap_ini_min": 28000,   "cap_ini_max": 28000,
+            "reg_cf_min": 580000,   "reg_cf_max": 580000,
+            "reg_cv_min": 60,       "reg_cv_max": 60,
+            "he_cv_min": 90,        "he_cv_max": 90,
+            "he_max_min": 20,       "he_max_max": 20,
+            "he_perda_min": 10,     "he_perda_max": 10,
+            "te_cf_min": 380000,    "te_cf_max": 380000,
+            "te_cv_min": 70,        "te_cv_max": 70,
+            "acr5_min": 200000,     "acr5_max": 200000,
+            "acr10_min": 350000,    "acr10_max": 350000,
+            "acr15_min": 500000,    "acr15_max": 500000,
+            "capital_min": 700000,  "capital_max": 700000,
+            "taxa_min": 3.5,        "taxa_max": 3.5,
+            "redcv_min": 1.5,       "redcv_max": 1.5,
+            "terc_cv_min": 86,      "terc_cv_max": 86,
+            "terc_lim_min": 20000,  "terc_lim_max": 20000,
+            "perda_cli_min": 80,    "perda_cli_max": 80,
+}
+
     }
+
+# Limites reais (min/max) que o moderador pode escolher - espelha a planilha
+# do orientador (aba "Logica sistema"); o servidor valida com base neles
+# alem da validacao em tempo real que ja ocorre no front-end
+PARAM_BOUNDS = {
+    "preco": (50, 300), "est_ini": (0, 10000), "armazen": (0, 100),
+    "cap_ini": (10000, 30000), "reg_cf": (100000, 1000000), "reg_cv": (50, 200),
+    "he_cv": (50, 280), "he_max": (0, 25), "he_perda": (0, 20),
+    "te_cf": (100000, 800000), "te_cv": (50, 200), "capital": (500000, 1500000),
+    "taxa": (0, 3.5), "redcv": (0, 10), "terc_cv": (50, 200),
+    "terc_lim": (10000, 30000), "perda_cli": (0, 100),
+}
 
 def load_db():
     if not os.path.exists(DB_FILE):
@@ -80,10 +116,10 @@ def gerar_tendencia(a, b):
     f = round((a - e) / 8)
     hist = [e]
     for i in range(1, 8):
-        lo = e + i * f
+        lo = e + (i - 1) * f
         hist.append(random.randint(int(lo), max(int(lo + f), int(lo) + 1)))
     c = round((b - a) / 8)
-    fut = [round(a + i * c + random.randint(0, int(c))) for i in range(8)]
+    fut = [min(b, round(a + i * c + random.randint(0, int(c)))) for i in range(8)]
     return hist, fut
 
 def gerar_ciclicidade(a, e_max):
@@ -97,6 +133,10 @@ def gerar_ciclicidade(a, e_max):
     return hist, fut
 
 def gerar_tend_ciclic(a, b, enfase="equilibrio"):
+    # NOTA: a planilha do orientador só documenta explicitamente o caso
+    # "equilibrio" (p=0.5); os pesos abaixo para enfase em tendencia/ciclicidade
+    # sao uma escolha razoavel deste codigo, nao uma especificacao da planilha -
+    # vale confirmar com o orientador se a repartição 2/3-1/3 é a esperada.
     pesos = {"tendencia": 2/3, "ciclicidade": 1/3, "equilibrio": 0.5}
     p  = pesos.get(enfase, 0.5)
     at = math.ceil(a * p);  bt = math.floor(b * p)
@@ -114,6 +154,23 @@ def gerar_demanda(tipo, params, enfase="equilibrio"):
     if tipo == 'ciclicidade': return gerar_ciclicidade(a, b)
     if tipo == 'tend_ciclic': return gerar_tend_ciclic(a, b, enfase)
     return gerar_uniforme(a, b)
+
+def capacidade_total_trimestral(cfg):
+    """Melhoria 2: capacidade maxima que uma equipe consegue produzir em um
+    trimestre, considerando os parametros do modelo (regular + hora extra +
+    turno extra + terceirizacao). Usado para alertar o moderador quando a
+    demanda configurada estiver acima do que o jogo permite atender."""
+    e = cfg['empresa']
+    return e['cap_regular'] + e['cap_hora_extra'] + e['cap_subcontratacao']
+
+def alerta_demanda_vs_capacidade(cfg, params):
+    cap = capacidade_total_trimestral(cfg)
+    if params['max'] > cap:
+        return (f"Atencao: a demanda maxima configurada ({params['max']}) supera a "
+                f"capacidade produtiva total do trimestre ({cap}), considerando os "
+                f"parametros do modelo. Nenhuma equipe conseguira atender 100% da "
+                f"demanda nesses trimestres.")
+    return None
 
 # ─────────────────────────────────────────────────────────────────
 # CÁLCULO DE RESULTADOS
@@ -226,7 +283,8 @@ def cadastrar_equipe():
         "rodadas": {}
     }
     save_db(db)
-    return jsonify({"ok": True, "equipe": nome, "historico": hist, "futura": fut})
+    alerta = alerta_demanda_vs_capacidade(cfg, cfg['params'][tipo]) if cfg['modo_demanda'] == 'automatico' else None
+    return jsonify({"ok": True, "equipe": nome, "historico": hist, "futura": fut, "alerta": alerta})
 
 @app.route('/api/equipes')
 def listar_equipes():
@@ -264,9 +322,6 @@ def salvar_plano():
         "producao_regular": data.get('producao_regular', 0),
         "horas_extras":     data.get('horas_extras', 0),
         "subcontratacao":   data.get('subcontratacao', 0),
-        "estoque_alvo":     data.get('estoque_alvo', 0),
-        "contratacoes":     data.get('contratacoes', 0),
-        "demissoes":        data.get('demissoes', 0),
         "timestamp":        datetime.now().isoformat()
     }
     if str(rodada) not in db['equipes'][nome]['rodadas']:
@@ -321,6 +376,29 @@ def moderador_login():
 def get_config():
     return jsonify(load_db()['config'])
 
+def aplicar_parametros_modelo_na_empresa(cfg):
+    """Melhoria 2: conecta os parametros do modelo (tela 'Parametros do Modelo')
+    aos dados que o jogo de fato usa para calcular resultado e demanda -
+    antes, ficavam salvos mas nunca eram lidos por calcular_resultado()."""
+    p = cfg['parametros_modelo']
+    e = cfg['empresa']
+    e['cap_regular']          = p['cap_ini_min']
+    e['cap_hora_extra']       = round(p['cap_ini_min'] * p['he_max_min'] / 100)
+    e['cap_subcontratacao']   = p['terc_lim_min']
+    e['estoque_inicial']      = p['est_ini_min']
+    e['custo_regular']        = p['reg_cv_min']
+    e['custo_hora_extra']     = p['he_cv_min']
+    e['custo_subcontratacao'] = p['terc_cv_min']
+    e['custo_estoque']        = p['armazen_min']
+
+def validar_parametros_modelo(p):
+    for chave, (lo, hi) in PARAM_BOUNDS.items():
+        if f'{chave}_min' not in p: continue
+        valor = p[f'{chave}_min']
+        if not (lo <= valor <= hi):
+            return f'Parametro "{chave}" = {valor} fora do intervalo permitido [{lo}, {hi}]'
+    return None
+
 @app.route('/api/moderador/config', methods=['POST'])
 def set_config():
     db  = load_db()
@@ -331,6 +409,12 @@ def set_config():
     if 'params' in d:
         for tipo, vals in d['params'].items():
             if tipo in cfg['params']: cfg['params'][tipo].update(vals)
+    if 'parametros_modelo' in d:
+        erro = validar_parametros_modelo(d['parametros_modelo'])
+        if erro:
+            return jsonify({"erro": erro}), 400
+        cfg['parametros_modelo'].update(d['parametros_modelo'])
+        aplicar_parametros_modelo_na_empresa(cfg)
     if 'empresa' in d:
         cfg['empresa'].update(d['empresa'])
     if d.get('senha_moderador'):
@@ -373,10 +457,15 @@ def preview_demanda():
     params = d.get('params', {})
     enfase = d.get('enfase', 'equilibrio')
     hist, fut = gerar_demanda(tipo, params, enfase)
-    return jsonify({"historico": hist, "futura": fut})
+    cfg = load_db()['config']
+    alerta = alerta_demanda_vs_capacidade(cfg, params)
+    return jsonify({"historico": hist, "futura": fut, "alerta": alerta,
+                     "capacidade_total": capacidade_total_trimestral(cfg)})
 
 # ─────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    print(" PCP Simulador → http://localhost:5000")
-    app.run(debug=True, port=5000)
+    port  = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    print(f" PCP Simulador → http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port, debug=debug)

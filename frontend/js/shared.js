@@ -3,7 +3,9 @@
    Projeto PIVIC Nº 391/2025 — UFU/FAGEN
 ═══════════════════════════════════════════════════════ */
 
-const API = 'http://localhost:5000/api';
+// Usa o mesmo host que serviu a página — funciona em localhost, na rede
+// local (IP do moderador) e em produção (Render/Railway/etc.), sem editar nada
+const API = `${window.location.origin}/api`;
 
 /* ── Formatadores ── */
 const fmt  = n => (n ?? 0).toLocaleString('pt-BR');

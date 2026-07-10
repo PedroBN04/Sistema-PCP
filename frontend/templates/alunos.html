@@ -105,7 +105,10 @@
       <div class="logo-badge">PCP</div>
       <div><div class="logo-name">PCP Simulador</div><div class="logo-sub">Área dos Alunos</div></div>
     </a>
-    <div id="topbar-rodada" class="topbar-pill">—</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <a href="/moderador" class="btn btn-ghost" style="font-size:12px; padding:6px 12px;">⚙️ Área do moderador</a>
+      <div id="topbar-rodada" class="topbar-pill">—</div>
+    </div>
   </div>
 </nav>
 
@@ -271,16 +274,6 @@
                 <label>Estoque Atual (automático)</label>
                 <input type="number" id="pl-estoque-atual" disabled style="opacity:.5"/>
                 <div class="form-hint">Herdado da rodada anterior</div>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Contratações</label>
-                <input type="number" id="pl-cont" min="0" value="0"/>
-              </div>
-              <div class="form-group">
-                <label>Demissões</label>
-                <input type="number" id="pl-dem" min="0" value="0"/>
               </div>
             </div>
             <div class="alert alert-err" id="plano-err"></div>
