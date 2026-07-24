@@ -247,12 +247,74 @@ async function salvarDemanda() {
   //await fetch(`${API}/moderador/config`, {
   //  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
   //});
- alert(`✅ Configuração de demanda salva!\n\nModo : ${modo}\nTipo : ${tipo}`);
- atualizarTopbar();
- navegarPara('parametros');
- document.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
 
-if (modo === 'automatico') {
+  const configDemanda = {
+    modo: modo,
+    tipo: tipo
+  };
+  localStorage.setItem('demandaPCP', JSON.stringify(configDemanda));
+
+  alert(`✅ Configuração de demanda salva!\n\nModo : ${modo}\nTipo : ${tipo}`);
+  atualizarTopbar();
+  navegarPara('parametros');
+  document.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
+
+  if (modo === 'automatico') {
+    if(modo === 'automatico' && tipo =='uniforme'){
+      preencherValoresPadrao(PARAM_UNIF);
+    }
+    if(modo === 'automatico' && tipo =='tendencia'){
+      preencherValoresPadrao(PARAM_TEND);
+    }
+    if(modo === 'automatico' && tipo =='ciclicidade'){
+      preencherValoresPadrao(PARAM_CICL);
+    }
+    if(modo === 'automatico' && tipo =='tend_ciclic'){
+      preencherValoresPadrao(PARAM_TENDCICL);
+    }
+    document.getElementById('preco_venda_prod_valor').readOnly = true;
+    document.getElementById('estoque_ini_valor').readOnly = true;
+    document.getElementById('custo_armaz_valor').readOnly = true;
+    document.getElementById('capac_produ_valor').readOnly = true;
+    document.getElementById('produ_regul_custo_fixo_valor').readOnly = true;
+    document.getElementById('produ_regul_custo_varia_valor').readOnly = true;
+    document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = true;
+    document.getElementById('hora_extra_max_valor').readOnly = true;
+    document.getElementById('perda_produ_hora_extra_valor').readOnly = true;
+    document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = true;
+    document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = true;
+    document.getElementById('acres_capac_5_valor').readOnly = true;
+    document.getElementById('acres_capac_10_valor').readOnly = true;
+    document.getElementById('acres_capac_15_valor').readOnly = true;
+    document.getElementById('terce_custo_varia_valor').readOnly = true;
+    document.getElementById('limit_max_produ_terce_valor').readOnly = true;
+    document.getElementById('capit_dispo_acres_capac_valor').readOnly = true;
+    document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = true;
+    document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = true;
+    document.getElementById('perda_clien_valor').readOnly = true; 
+  } else {
+    document.getElementById('preco_venda_prod_valor').readOnly = false;
+    document.getElementById('estoque_ini_valor').readOnly = false;
+    document.getElementById('custo_armaz_valor').readOnly = false;
+    document.getElementById('capac_produ_valor').readOnly = false;
+    document.getElementById('produ_regul_custo_fixo_valor').readOnly = false;
+    document.getElementById('produ_regul_custo_varia_valor').readOnly = false;
+    document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = false;
+    document.getElementById('hora_extra_max_valor').readOnly = false;
+    document.getElementById('perda_produ_hora_extra_valor').readOnly = false;
+    document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = false;
+    document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = false;
+    document.getElementById('acres_capac_5_valor').readOnly = false;
+    document.getElementById('acres_capac_10_valor').readOnly = false;
+    document.getElementById('acres_capac_15_valor').readOnly = false;
+    document.getElementById('terce_custo_varia_valor').readOnly = false;
+    document.getElementById('limit_max_produ_terce_valor').readOnly = false;
+    document.getElementById('capit_dispo_acres_capac_valor').readOnly = false;
+    document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = false;
+    document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = false;
+    document.getElementById('perda_clien_valor').readOnly = false;
+  }
+
   if(modo === 'automatico' && tipo =='uniforme'){
     preencherValoresPadrao(PARAM_UNIF);
   }
@@ -265,64 +327,6 @@ if (modo === 'automatico') {
   if(modo === 'automatico' && tipo =='tend_ciclic'){
     preencherValoresPadrao(PARAM_TENDCICL);
   }
-  document.getElementById('preco_venda_prod_valor').readOnly = true;
-  document.getElementById('estoque_ini_valor').readOnly = true;
-  document.getElementById('custo_armaz_valor').readOnly = true;
-  document.getElementById('capac_produ_valor').readOnly = true;
-  document.getElementById('produ_regul_custo_fixo_valor').readOnly = true;
-  document.getElementById('produ_regul_custo_varia_valor').readOnly = true;
-  document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = true;
-  document.getElementById('hora_extra_max_valor').readOnly = true;
-  document.getElementById('perda_produ_hora_extra_valor').readOnly = true;
-  document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = true;
-  document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = true;
-  document.getElementById('acres_capac_5_valor').readOnly = true;
-  document.getElementById('acres_capac_10_valor').readOnly = true;
-  document.getElementById('acres_capac_15_valor').readOnly = true;
-  document.getElementById('terce_custo_varia_valor').readOnly = true;
-  document.getElementById('limit_max_produ_terce_valor').readOnly = true;
-  document.getElementById('capit_dispo_acres_capac_valor').readOnly = true;
-  document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = true;
-  document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = true;
-  document.getElementById('perda_clien_valor').readOnly = true; 
-} else {
-  document.getElementById('preco_venda_prod_valor').readOnly = false;
-  document.getElementById('estoque_ini_valor').readOnly = false;
-  document.getElementById('custo_armaz_valor').readOnly = false;
-  document.getElementById('capac_produ_valor').readOnly = false;
-  document.getElementById('produ_regul_custo_fixo_valor').readOnly = false;
-  document.getElementById('produ_regul_custo_varia_valor').readOnly = false;
-  document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = false;
-  document.getElementById('hora_extra_max_valor').readOnly = false;
-  document.getElementById('perda_produ_hora_extra_valor').readOnly = false;
-  document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = false;
-  document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = false;
-  document.getElementById('acres_capac_5_valor').readOnly = false;
-  document.getElementById('acres_capac_10_valor').readOnly = false;
-  document.getElementById('acres_capac_15_valor').readOnly = false;
-  document.getElementById('terce_custo_varia_valor').readOnly = false;
-  document.getElementById('limit_max_produ_terce_valor').readOnly = false;
-  document.getElementById('capit_dispo_acres_capac_valor').readOnly = false;
-  document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = false;
-  document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = false;
-  document.getElementById('perda_clien_valor').readOnly = false;
-}
-
-  if(modo === 'automatico' && tipo =='uniforme'){
-    preencherValoresPadrao(PARAM_UNIF);
-  }
-  if(modo === 'automatico' && tipo =='tendencia'){
-    preencherValoresPadrao(PARAM_TEND);
-  }
-  if(modo === 'automatico' && tipo =='ciclicidade'){
-    preencherValoresPadrao(PARAM_CICL);
-  }
-  if(modo === 'automatico' && tipo =='tend_ciclic'){
-    preencherValoresPadrao(PARAM_TENDCICL);
-  }
-
-
-
 }
 
 // ── EMPRESA ───────────────────────────────────────────
@@ -771,55 +775,68 @@ async function carregarParametros() {
   });
 }
 
-function _coletarParametros() {
-  const out = {};
-  PARAM_IDS.forEach(k => {
-    const el  = document.getElementById(`p-${k.replace(/_/g, '-')}`);
-    if (!el) return;
+//function _coletarParametros() {
+//  const out = {};
+//  PARAM_IDS.forEach(k => {
+//    const el  = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+//    if (!el) return;
     // campos reais (taxa e redcv) → parseFloat; demais → parseInt
-    out[k] = (k.startsWith('taxa') || k.startsWith('redcv'))
-      ? parseFloat(el.value)
-      : parseInt(el.value);
-  });
-  return out;
-}
+//    out[k] = (k.startsWith('taxa') || k.startsWith('redcv'))
+//      ? parseFloat(el.value)
+//      : parseInt(el.value);
+//  });
+//  return out;
+//}
 
-function _validarParametros(p) {
-  for (const grupo of [
-    ['preco_min','preco_max'], ['est_ini_min','est_ini_max'],
-    ['armazen_min','armazen_max'], ['cap_ini_min','cap_ini_max'],
-    ['reg_cf_min','reg_cf_max'], ['reg_cv_min','reg_cv_max'],
-    ['he_cv_min','he_cv_max'], ['he_max_min','he_max_max'],
-    ['he_perda_min','he_perda_max'], ['te_cf_min','te_cf_max'],
-    ['te_cv_min','te_cv_max'], ['acr5_min','acr5_max'],
-    ['acr10_min','acr10_max'], ['acr15_min','acr15_max'],
-    ['capital_min','capital_max'], ['taxa_min','taxa_max'],
-    ['redcv_min','redcv_max'], ['terc_cv_min','terc_cv_max'],
-    ['terc_lim_min','terc_lim_max'], ['perda_cli_min','perda_cli_max'],
-  ]) {
-    const [kMin, kMax] = grupo;
-    if (isNaN(p[kMin]) || isNaN(p[kMax]))
-      return { ok: false, msg: `Preencha os campos de "${kMin.replace(/_/g,' ')}" corretamente.` };
-    if (p[kMin] > p[kMax])
-      return { ok: false, msg: `Mínimo não pode ser maior que Máximo em "${kMin.replace(/_/g,' ')}".` };
-  }
-  return { ok: true };
-}
+function validarParametros() {
+  const form    = document.getElementById('parametros');
+  const valor   = document.querySelectorAll('.required');
+  const min     = document.querySelectorAll('.requiredmin');
+  const max     = document.querySelectorAll('.requiredmax');
 
-async function salvarParametros() {
-
-  const min = parseInt(document.getElementById('preco_venda_prod_min').value);
-  const max = parseInt(document.getElementById('preco_venda_prod_max').value);
-  const valor = parseInt(document.getElementById('preco_venda_prod_valor').value);
-
-  if (valor < min || valor > max) {
-    // Se o valor for menor que o mínimo OU maior que o máximo, barramos!
-    alert(`Erro! O valor digitado fora do período permitido.`);
-
-  }else{
-    alert('Salvo!')
+  for (let i = 0; i < valor.length; i++) {
+    if (valor[i].value === '') {
+      valor[i].style.border = '';
+    } else {
+      if(parseInt(valor[i].value) <= parseInt(min[i].value)){
+        valor[i].style.border = '1px solid #e63636';
+      }if(parseInt(valor[i].value) >= parseInt(max[i].value) ){
+        valor[i].style.border = '1px solid #e63636';
+      }if(parseInt(valor[i].value) >= parseInt(min[i].value) && parseInt(valor[i].value) <= parseInt(max[i].value)){
+        valor[i].style.border = '1px solid #5fe636';
+      }
+    }
   }
 }
+
+function salvarParametros() {
+  const valor = document.querySelectorAll('.required');
+  let possuiErro = false;
+  const parametrosSalvos = {};
+
+  // Verifica se há algum erro (borda vermelha)
+  for (let i = 0; i < valor.length; i++) {
+    if (valor[i].style.border.includes('e63636') || valor[i].style.border.includes('rgb(230, 54, 54)')) {
+      possuiErro = true;
+      break;
+    }
+  }
+
+  if (possuiErro) {
+    alert('Existem parâmetros com valores inválidos. Verifique os campos em vermelho.');
+  } else {
+    // Coleta as IDs e os valores digitados
+    for (let i = 0; i < valor.length; i++) {
+      parametrosSalvos[valor[i].id] = valor[i].value;
+    }
+
+    // Salva na memória do navegador (Storage) como texto
+    localStorage.setItem('parametrosPCP', JSON.stringify(parametrosSalvos));
+    
+    alert('Salvo!');
+  }
+}
+
 
 function resetarParametros() {
   if (!confirm('Restaurar todos os parâmetros para os valores padrão?')) return;

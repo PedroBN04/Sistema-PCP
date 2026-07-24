@@ -51,28 +51,27 @@ def default_config():
             "tend_ciclic": {"min": 32500, "max": 47500, "rest_min": 30000, "rest_max": 50000, "dif_min": 10000, "dif_max": 18000}
         },
         "parametros_modelo": {
-            "preco_min": 100,       "preco_max": 100,
-            "est_ini_min": 1000,    "est_ini_max": 1000,
-            "armazen_min": 15,      "armazen_max": 15,
-            "cap_ini_min": 28000,   "cap_ini_max": 28000,
-            "reg_cf_min": 580000,   "reg_cf_max": 580000,
-            "reg_cv_min": 60,       "reg_cv_max": 60,
-            "he_cv_min": 90,        "he_cv_max": 90,
-            "he_max_min": 20,       "he_max_max": 20,
-            "he_perda_min": 10,     "he_perda_max": 10,
-            "te_cf_min": 380000,    "te_cf_max": 380000,
-            "te_cv_min": 70,        "te_cv_max": 70,
-            "acr5_min": 200000,     "acr5_max": 200000,
-            "acr10_min": 350000,    "acr10_max": 350000,
-            "acr15_min": 500000,    "acr15_max": 500000,
-            "capital_min": 700000,  "capital_max": 700000,
-            "taxa_min": 3.5,        "taxa_max": 3.5,
-            "redcv_min": 1.5,       "redcv_max": 1.5,
-            "terc_cv_min": 86,      "terc_cv_max": 86,
-            "terc_lim_min": 20000,  "terc_lim_max": 20000,
-            "perda_cli_min": 80,    "perda_cli_max": 80,
-}
-
+            "preco_venda_prod_valor": 100,
+            "estoque_ini_valor": 1000,
+            "custo_armaz_valor": 15,
+            "capac_produ_valor": 28000,
+            "produ_regul_custo_fixo_valor": 580000,
+            "produ_regul_custo_varia_valor": 60,
+            "produ_hora_extra_custo_varia_valor": 90,
+            "hora_extra_max_valor": 20,
+            "perda_produ_hora_extra_valor": 10,
+            "produ_turno_extra_custo_fixo_valor": 380000,
+            "produ_turno_extra_custo_varia_valor": 70,
+            "acres_capac_5_valor": 200000,
+            "acres_capac_10_valor": 350000,
+            "acres_capac_15_valor": 500000,
+            "terce_custo_varia_valor": 86,
+            "limit_max_produ_terce_valor": 20000,
+            "capit_dispo_acres_capac_valor": 700000,
+            "taxa_rendi_capit_dispo_valor": 3.5,
+            "reduc_custo_varia_aumen_capac_produ_valor": 1.5,
+            "perda_clien_valor": 80
+        }
     }
 
 def load_db():
@@ -349,15 +348,27 @@ def set_config():
     db  = load_db()
     cfg = db['config']
     d   = request.json
+    
+    # Atualiza configurações de demanda
     for k in ['tipo_demanda','modo_demanda','enfase_tend_ciclic','demanda_manual']:
         if k in d: cfg[k] = d[k]
+        
     if 'params' in d:
         for tipo, vals in d['params'].items():
             if tipo in cfg['params']: cfg['params'][tipo].update(vals)
+            
     if 'empresa' in d:
         cfg['empresa'].update(d['empresa'])
+        
+    # Salva e atualiza o novo dicionário parametros_modelo recebido do Frontend
+    if 'parametros_modelo' in d:
+        if 'parametros_modelo' not in cfg:
+            cfg['parametros_modelo'] = {}
+        cfg['parametros_modelo'].update(d['parametros_modelo'])
+        
     if d.get('senha_moderador'):
         cfg['senha_moderador'] = d['senha_moderador']
+        
     save_db(db)
     return jsonify({"ok": True})
 

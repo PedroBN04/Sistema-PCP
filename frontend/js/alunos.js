@@ -219,6 +219,45 @@ async function renderBriefing() {
   }
 }
 
+function carregarParametrosAluno() {
+  // Ocultar os parâmetros que não devem aparecer para o aluno (adicionado o novo campo)
+  const paramsOcultos = ['estoque_ini_valor', 'capac_produ_valor', 'capit_dispo_acres_capac_valor'];
+  paramsOcultos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.closest('.param-inputs')) {
+      el.closest('.param-inputs').style.display = 'none';
+    }
+  });
+
+  const dadosParametros = localStorage.getItem('parametrosPCP');
+  
+  if (dadosParametros) {
+    const parametrosSalvos = JSON.parse(dadosParametros);
+    const valor = document.querySelectorAll('.required');
+
+    for (let i = 0; i < valor.length; i++) {
+      const idCampo = valor[i].id;
+      
+      if (parametrosSalvos[idCampo] !== undefined) {
+        valor[i].value = parametrosSalvos[idCampo];
+      }
+    }
+  }
+
+  const dadosDemanda = localStorage.getItem('demandaPCP');
+  
+  if (dadosDemanda) {
+    const demandaSalva = JSON.parse(dadosDemanda);
+    const infoDemanda = document.getElementById('info-demanda-salva');
+    
+    if (infoDemanda) {
+      infoDemanda.innerText = `(Modo: ${demandaSalva.modo} | Tipo: ${demandaSalva.tipo})`;
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', carregarParametrosAluno);
+
 // ── HISTÓRICO ─────────────────────────────────────────
 function renderHistorico() {
   const hist = equipeData.demanda_historico;
