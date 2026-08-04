@@ -412,5 +412,7 @@ def preview_demanda():
 # ─────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    print(" PCP Simulador → http://localhost:5000")
-    app.run(debug=True, port=5000)
+    port  = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
+    print(f" PCP Simulador → http://localhost:{port}")
+    app.run(host='0.0.0.0', port=port, debug=debug)
