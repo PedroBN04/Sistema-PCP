@@ -544,7 +544,7 @@ const PARAM_DEFAULTS = {
   //Acréscimo de capacidade - 10.000 unidades:
   acres_capac_10_min: 150000, acres_capac_10_max: 500000,
   //Acréscimo de capacidade - 15.000 unidades:
-  acres_capac_15_min: 250000, acres_capac_15_max: 250000,
+  acres_capac_15_min: 250000, acres_capac_15_max: 750000,
   // Terceirização (Custo variável):
   terce_custo_varia_min: 50, terce_custo_varia_max: 200,
   //Limite máximo da produção em terceirização:
@@ -552,7 +552,7 @@ const PARAM_DEFAULTS = {
   //Capital disponível para acréscimo de capacidade:
   capit_dispo_acres_capac_min: 500000, capit_dispo_acres_capac_max: 1500000,
   //Taxa de rendimento do capital disponível:
-  taxa_rendi_capit_dispo_min: 0, taxa_rendi_capit_dispo_max: 4,
+  taxa_rendi_capit_dispo_min: 0, taxa_rendi_capit_dispo_max: 3.5,
   // Redução do custo variável devido ao aumento da capacidade produtiva:
   reduc_custo_varia_aumen_capac_produ_min: 0, reduc_custo_varia_aumen_capac_produ_max: 10,
   //Perda de clientes:
@@ -732,8 +732,12 @@ const PARAM_TENDCICL = {
   perda_clien_valor: 50, 
 };
 
-// IDs dos inputs — sufixo bate com o id no HTML (p-<chave>)
-//const PARAM_IDS = Object.keys(PARAM_DEFAULTS);
+// IDs dos inputs — cada campo "_valor" no HTML tem o mesmo id usado
+// como chave aqui (ex: "capac_produ_valor"); PARAM_IDS guarda só o
+// prefixo (sem "_min"/"_max") de cada parâmetro
+const PARAM_IDS = Object.keys(PARAM_DEFAULTS)
+  .filter(k => k.endsWith('_min'))
+  .map(k => k.replace(/_min$/, ''));
 
 function preencherValoresPadrao(PARAM) {
   
@@ -770,23 +774,11 @@ async function carregarParametros() {
   const cfg = await fetch(`${API}/moderador/config`).then(r => r.json());
   const p   = cfg.parametros_modelo || {};
   PARAM_IDS.forEach(k => {
-    const el = document.getElementById(`p-${k.replace(/_/g, '-')}`);
-    if (el) el.value = (p[k] !== undefined) ? p[k] : PARAM_DEFAULTS[k];
+    const id = `${k}_valor`;
+    const el = document.getElementById(id);
+    if (el) el.value = (p[id] !== undefined) ? p[id] : PARAM_UNIF[id];
   });
 }
-
-//function _coletarParametros() {
-//  const out = {};
-//  PARAM_IDS.forEach(k => {
-//    const el  = document.getElementById(`p-${k.replace(/_/g, '-')}`);
-//    if (!el) return;
-    // campos reais (taxa e redcv) → parseFloat; demais → parseInt
-//    out[k] = (k.startsWith('taxa') || k.startsWith('redcv'))
-//      ? parseFloat(el.value)
-//      : parseInt(el.value);
-//  });
-//  return out;
-//}
 
 function validarParametros() {
   const form    = document.getElementById('parametros');
@@ -798,51 +790,60 @@ function validarParametros() {
     if (valor[i].value === '') {
       valor[i].style.border = '';
     } else {
-      if(parseInt(valor[i].value) <= parseInt(min[i].value)){
+      if(parseFloat(valor[i].value) <= parseFloat(min[i].value)){
         valor[i].style.border = '1px solid #e63636';
-      }if(parseInt(valor[i].value) >= parseInt(max[i].value) ){
+      }if(parseFloat(valor[i].value) >= parseFloat(max[i].value) ){
         valor[i].style.border = '1px solid #e63636';
-      }if(parseInt(valor[i].value) >= parseInt(min[i].value) && parseInt(valor[i].value) <= parseInt(max[i].value)){
+      }if(parseFloat(valor[i].value) >= parseFloat(min[i].value) && parseFloat(valor[i].value) <= parseFloat(max[i].value)){
         valor[i].style.border = '1px solid #5fe636';
       }
     }
   }
 }
 
-function salvarParametros() {
+async function salvarParametros() {
   const valor = document.querySelectorAll('.required');
   let possuiErro = false;
   const parametrosSalvos = {};
 
-  // Verifica se há algum erro (borda vermelha)
+  // Verifica se há algum erro (borda vermelha) ou campo vazio
   for (let i = 0; i < valor.length; i++) {
-    if (valor[i].style.border.includes('e63636') || valor[i].style.border.includes('rgb(230, 54, 54)')) {
+    if (valor[i].value === '' || valor[i].style.border.includes('e63636') || valor[i].style.border.includes('rgb(230, 54, 54)')) {
       possuiErro = true;
       break;
     }
   }
 
   if (possuiErro) {
-    alert('Existem parâmetros com valores inválidos. Verifique os campos em vermelho.');
-  } else {
-    // Coleta as IDs e os valores digitados
-    for (let i = 0; i < valor.length; i++) {
-      parametrosSalvos[valor[i].id] = valor[i].value;
-    }
-
-    // Salva na memória do navegador (Storage) como texto
-    localStorage.setItem('parametrosPCP', JSON.stringify(parametrosSalvos));
-    
-    alert('Salvo!');
+    alert('Existem parâmetros com valores inválidos ou vazios. Verifique os campos em vermelho.');
+    return;
   }
+
+  // Coleta as IDs e os valores digitados (convertidos para número)
+  for (let i = 0; i < valor.length; i++) {
+    parametrosSalvos[valor[i].id] = parseFloat(valor[i].value);
+  }
+
+  const r = await fetch(`${API}/moderador/config`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parametros_modelo: parametrosSalvos })
+  });
+  const res = await r.json();
+  if (!r.ok) {
+    alert('Erro ao salvar: ' + (res.erro || 'tente novamente.'));
+    return;
+  }
+
+  alert('Parâmetros salvos e aplicados ao jogo (capacidade, custos e geração de demanda).');
 }
 
 
 function resetarParametros() {
   if (!confirm('Restaurar todos os parâmetros para os valores padrão?')) return;
   PARAM_IDS.forEach(k => {
-    const el = document.getElementById(`p-${k.replace(/_/g, '-')}`);
-    if (el) el.value = PARAM_DEFAULTS[k];
+    const id = `${k}_valor`;
+    const el = document.getElementById(id);
+    if (el) { el.value = PARAM_UNIF[id]; el.style.border = ''; }
   });
   showAlert('param-ok', 'ℹ️ Padrões restaurados — clique em Salvar para confirmar.', 'ok');
 }

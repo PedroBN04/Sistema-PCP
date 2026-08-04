@@ -102,10 +102,10 @@ def gerar_tendencia(a, b):
     f = round((a - e) / 8)
     hist = [e]
     for i in range(1, 8):
-        lo = e + i * f
+        lo = e + (i - 1) * f
         hist.append(random.randint(int(lo), max(int(lo + f), int(lo) + 1)))
     c = round((b - a) / 8)
-    fut = [round(a + i * c + random.randint(0, int(c))) for i in range(8)]
+    fut = [min(b, round(a + i * c + random.randint(0, int(c)))) for i in range(8)]
     return hist, fut
 
 def gerar_ciclicidade(a, e_max):
@@ -136,6 +136,23 @@ def gerar_demanda(tipo, params, enfase="equilibrio"):
     if tipo == 'ciclicidade': return gerar_ciclicidade(a, b)
     if tipo == 'tend_ciclic': return gerar_tend_ciclic(a, b, enfase)
     return gerar_uniforme(a, b)
+
+def capacidade_total_trimestral(cfg):
+    """Capacidade maxima que uma equipe consegue produzir em um trimestre,
+    considerando os parametros do modelo (regular + hora extra + turno
+    extra + terceirizacao). Usado para alertar o moderador quando a
+    demanda configurada estiver acima do que o jogo permite atender."""
+    e = cfg['empresa']
+    return e['cap_regular'] + e['cap_hora_extra'] + e['cap_subcontratacao']
+
+def alerta_demanda_vs_capacidade(cfg, params):
+    cap = capacidade_total_trimestral(cfg)
+    if params['max'] > cap:
+        return (f"Atencao: a demanda maxima configurada ({params['max']}) supera a "
+                f"capacidade produtiva total do trimestre ({cap}), considerando os "
+                f"parametros do modelo. Nenhuma equipe conseguira atender 100% da "
+                f"demanda nesses trimestres.")
+    return None
 
 # ─────────────────────────────────────────────────────────────────
 # CÁLCULO DE RESULTADOS
@@ -248,7 +265,8 @@ def cadastrar_equipe():
         "rodadas": {}
     }
     save_db(db)
-    return jsonify({"ok": True, "equipe": nome, "historico": hist, "futura": fut})
+    alerta = alerta_demanda_vs_capacidade(cfg, cfg['params'][tipo]) if cfg['modo_demanda'] == 'automatico' else None
+    return jsonify({"ok": True, "equipe": nome, "historico": hist, "futura": fut, "alerta": alerta})
 
 @app.route('/api/equipes')
 def listar_equipes():
@@ -286,9 +304,6 @@ def salvar_plano():
         "producao_regular": data.get('producao_regular', 0),
         "horas_extras":     data.get('horas_extras', 0),
         "subcontratacao":   data.get('subcontratacao', 0),
-        "estoque_alvo":     data.get('estoque_alvo', 0),
-        "contratacoes":     data.get('contratacoes', 0),
-        "demissoes":        data.get('demissoes', 0),
         "timestamp":        datetime.now().isoformat()
     }
     if str(rodada) not in db['equipes'][nome]['rodadas']:
@@ -339,6 +354,49 @@ def moderador_login():
         return jsonify({"ok": True})
     return jsonify({"erro": "Senha incorreta"}), 401
 
+# Limites reais (min/max) que o moderador pode escolher - espelha a planilha
+# do orientador (aba "Logica sistema") e os mesmos limites do PARAM_DEFAULTS
+# do front-end; o servidor valida com base neles alem da validacao em tempo
+# real que ja ocorre no front-end (chave = id do campo "_valor" no HTML)
+PARAM_BOUNDS = {
+    "preco_venda_prod_valor": (50, 300), "estoque_ini_valor": (0, 10000),
+    "custo_armaz_valor": (0, 100), "capac_produ_valor": (10000, 30000),
+    "produ_regul_custo_fixo_valor": (100000, 1000000), "produ_regul_custo_varia_valor": (50, 200),
+    "produ_hora_extra_custo_varia_valor": (50, 280), "hora_extra_max_valor": (0, 25),
+    "perda_produ_hora_extra_valor": (0, 20), "produ_turno_extra_custo_fixo_valor": (100000, 800000),
+    "produ_turno_extra_custo_varia_valor": (50, 200), "acres_capac_5_valor": (100000, 300000),
+    "acres_capac_10_valor": (150000, 500000), "acres_capac_15_valor": (250000, 750000),
+    "terce_custo_varia_valor": (50, 200), "limit_max_produ_terce_valor": (10000, 30000),
+    "capit_dispo_acres_capac_valor": (500000, 1500000), "taxa_rendi_capit_dispo_valor": (0, 3.5),
+    "reduc_custo_varia_aumen_capac_produ_valor": (0, 10), "perda_clien_valor": (0, 100),
+}
+
+def validar_parametros_modelo(p):
+    for chave, (lo, hi) in PARAM_BOUNDS.items():
+        if chave not in p: continue
+        valor = p[chave]
+        if not (lo <= valor <= hi):
+            return f'Parametro "{chave}" = {valor} fora do intervalo permitido [{lo}, {hi}]'
+    return None
+
+def aplicar_parametros_modelo_na_empresa(cfg):
+    """Conecta os parametros do modelo (tela 'Parametros do Modelo') aos
+    dados que o jogo de fato usa para calcular resultado e demanda -
+    sem isso, os parametros ficavam salvos mas nunca eram lidos por
+    calcular_resultado()."""
+    p = cfg['parametros_modelo']
+    e = cfg['empresa']
+    if 'capac_produ_valor' not in p: return  # ainda não configurado
+    e['cap_regular']          = p['capac_produ_valor']
+    e['cap_hora_extra']       = round(p['capac_produ_valor'] * p['hora_extra_max_valor'] / 100)
+    e['cap_subcontratacao']   = p['limit_max_produ_terce_valor']
+    e['estoque_inicial']      = p['estoque_ini_valor']
+    e['custo_regular']        = p['produ_regul_custo_varia_valor']
+    e['custo_hora_extra']     = p['produ_hora_extra_custo_varia_valor']
+    e['custo_subcontratacao'] = p['terce_custo_varia_valor']
+    e['custo_estoque']        = p['custo_armaz_valor']
+
+
 @app.route('/api/moderador/config', methods=['GET'])
 def get_config():
     return jsonify(load_db()['config'])
@@ -362,9 +420,13 @@ def set_config():
         
     # Salva e atualiza o novo dicionário parametros_modelo recebido do Frontend
     if 'parametros_modelo' in d:
+        erro = validar_parametros_modelo(d['parametros_modelo'])
+        if erro:
+            return jsonify({"erro": erro}), 400
         if 'parametros_modelo' not in cfg:
             cfg['parametros_modelo'] = {}
         cfg['parametros_modelo'].update(d['parametros_modelo'])
+        aplicar_parametros_modelo_na_empresa(cfg)
         
     if d.get('senha_moderador'):
         cfg['senha_moderador'] = d['senha_moderador']
@@ -407,7 +469,10 @@ def preview_demanda():
     params = d.get('params', {})
     enfase = d.get('enfase', 'equilibrio')
     hist, fut = gerar_demanda(tipo, params, enfase)
-    return jsonify({"historico": hist, "futura": fut})
+    cfg = load_db()['config']
+    alerta = alerta_demanda_vs_capacidade(cfg, params)
+    return jsonify({"historico": hist, "futura": fut, "alerta": alerta,
+                     "capacidade_total": capacidade_total_trimestral(cfg)})
 
 # ─────────────────────────────────────────────────────────────────
 
