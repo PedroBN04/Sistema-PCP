@@ -7,10 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="/css/style.css"/>
 <style>
-/* ── LAYOUT ALUNOS ── */
 .aluno-layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
 
-/* Sidebar */
 .sidebar {
   background: var(--surface); border-right: 1px solid var(--border);
   padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px);
@@ -40,20 +38,17 @@
 .sidebar-equipe .eq-sub  { font-size: 11px; color: var(--text2); margin-top: 2px; }
 .sidebar-equipe .eq-badge{ display: inline-block; margin-top: 6px; }
 
-/* Main */
 .aluno-main { padding: 28px; }
 .page-header { margin-bottom: 24px; }
 .page-header h1 { font-family: var(--font-head); font-size: 22px; font-weight: 800; margin-bottom: 4px; }
 .page-header p  { font-size: 13px; color: var(--text2); }
 
-/* Tela de cadastro / seleção */
 .gate-card {
   max-width: 480px; margin: 60px auto;
 }
 .gate-card h2 { font-family: var(--font-head); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
 .gate-card p  { color: var(--text2); font-size: 13px; margin-bottom: 22px; }
 
-/* Plano - estimativa em tempo real */
 .plano-summary {
   background: var(--surface2); border: 1px solid var(--border2);
   border-radius: var(--r); padding: 18px; margin-bottom: 18px;
@@ -65,7 +60,6 @@
 .ps-row:last-child { border: none; font-weight: 700; font-size: 14px; }
 .ps-row .label { color: var(--text2); }
 
-/* Resultado da rodada */
 .resultado-box {
   background: var(--surface2); border: 1px solid var(--border2);
   border-radius: var(--r); padding: 20px; margin-top: 16px;
@@ -81,7 +75,6 @@
 .res-ns.mid   { background: rgba(251,191,36,.12); color: var(--amber); }
 .res-ns.low   { background: var(--red-dim); color: var(--red); }
 
-/* Sessão bloqueada */
 .sessao-bloqueada {
   text-align: center; padding: 80px 28px;
 }
@@ -89,30 +82,38 @@
 .sessao-bloqueada h2 { font-family: var(--font-head); font-size: 22px; font-weight: 700; margin-bottom: 8px; }
 .sessao-bloqueada p  { color: var(--text2); max-width: 420px; margin: 0 auto; font-size: 14px; }
 
+.param-grid  { display: flex; flex-direction: column; gap: 0; }
+.param-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; padding: 10px 0; }
+.param-label { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.param-name  { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.param-unit  { font-size: 11px; color: var(--text3); font-style: italic; }
+.param-obs   { font-size: 11px; color: var(--text3); grid-column: 1 / -1; padding-bottom: 2px; }
+.param-inputs { display: grid; grid-template-columns: 450px 220px; gap: 16px; align-items: center; padding: 4px 0; }
+.param-hint  { font-size: 11px; color: var(--text3); font-weight: 400; text-transform: none; }
+.title { display: block; font-size: 14px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin: 8px 2px 2px 2px; }
+.mb-16 { margin-bottom: 16px; }
+.mt-16 { margin-top: 16px; }
+
 @media (max-width: 800px) {
   .aluno-layout { grid-template-columns: 1fr; }
   .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; padding: 8px; }
   .sidebar-label { display: none; }
+  .param-inputs { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <nav class="topbar">
   <div class="topbar-inner">
     <a class="logo" href="/">
       <div class="logo-badge">PCP</div>
       <div><div class="logo-name">PCP Simulador</div><div class="logo-sub">Área dos Alunos</div></div>
     </a>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <a href="/moderador" class="btn btn-ghost" style="font-size:12px; padding:6px 12px;">⚙️ Área do moderador</a>
-      <div id="topbar-rodada" class="topbar-pill">—</div>
-    </div>
+    <div id="topbar-rodada" class="topbar-pill">—</div>
   </div>
 </nav>
 
-<!-- SESSÃO FECHADA -->
 <div id="sessao-fechada-view" style="display:none">
   <div class="sessao-bloqueada">
     <span class="icon">⏳</span>
@@ -122,7 +123,6 @@
   </div>
 </div>
 
-<!-- TELA CADASTRO (antes de ter equipe) -->
 <div id="cadastro-view" style="display:none" class="container">
   <div class="gate-card">
     <div class="card">
@@ -157,11 +157,9 @@
   </div>
 </div>
 
-<!-- PAINEL PRINCIPAL (após cadastro) -->
 <div id="aluno-panel" style="display:none">
   <div class="aluno-layout">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div id="sidebar-equipe-info" class="sidebar-equipe">
         <div class="eq-name" id="sb-eq-nome">—</div>
@@ -181,6 +179,9 @@
       <button class="nav-item" data-apage="plano">
         <span class="ni-icon">📋</span> Plano Agregado
       </button>
+      <button class="nav-item" data-apage="parametros">
+        <span class="ni-icon">⚙️</span> Parâmetros
+      </button>
       <div class="sidebar-label">Histórico</div>
       <button class="nav-item" data-apage="resultados">
         <span class="ni-icon">🏆</span> Meus Resultados
@@ -190,10 +191,8 @@
       </button>
     </aside>
 
-    <!-- MAIN -->
     <main class="aluno-main">
 
-      <!-- ══ BRIEFING ══ -->
       <div id="apage-briefing" class="apage-content">
         <div class="page-header">
           <h1 id="brief-titulo">Bem-vinda, Equipe!</h1>
@@ -210,7 +209,6 @@
         </div>
       </div>
 
-      <!-- ══ HISTÓRICO ══ -->
       <div id="apage-dados" class="apage-content" style="display:none">
         <div class="page-header">
           <h1>Histórico de Demanda</h1>
@@ -231,7 +229,6 @@
         </div>
       </div>
 
-      <!-- ══ EMPRESA ══ -->
       <div id="apage-empresa" class="apage-content" style="display:none">
         <div class="page-header">
           <h1>Dados da Empresa</h1>
@@ -240,7 +237,6 @@
         <div id="empresa-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:16px"></div>
       </div>
 
-      <!-- ══ PLANO ══ -->
       <div id="apage-plano" class="apage-content" style="display:none">
         <div class="page-header">
           <h1 id="plano-titulo">Plano Agregado — Rodada —</h1>
@@ -276,6 +272,16 @@
                 <div class="form-hint">Herdado da rodada anterior</div>
               </div>
             </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Contratações</label>
+                <input type="number" id="pl-cont" min="0" value="0"/>
+              </div>
+              <div class="form-group">
+                <label>Demissões</label>
+                <input type="number" id="pl-dem" min="0" value="0"/>
+              </div>
+            </div>
             <div class="alert alert-err" id="plano-err"></div>
             <button class="btn btn-primary btn-full" onclick="submeterPlano()">
               Submeter Plano Agregado
@@ -283,7 +289,6 @@
             </button>
           </div>
 
-          <!-- Estimativa -->
           <div class="plano-summary">
             <h4>Estimativa em Tempo Real</h4>
             <div class="ps-row"><span class="label">Prod. Regular</span><span id="est-prod">0</span></div>
@@ -306,7 +311,210 @@
         </div>
       </div>
 
-      <!-- ══ RESULTADOS ══ -->
+      <div id="apage-parametros" class="apage-content" style="display:none">
+        <div class="page-header">
+          <h1>Parâmetros do Modelo <span id="info-demanda-salva"></span></h1>
+          <p>Restrições e valores dos parâmetros entregues às equipes.</p>
+        </div>
+        <div class="alert alert-err" id="param-err" style="display:none"></div>
+        <div class="alert alert-ok"  id="param-ok"  style="display:none"></div>
+        <div class="card mb-16" id="parametros">
+          <div class="param-inputs">
+            <div class="title">Preço de venda do produto
+            <p class="param-unit">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="preco_venda_prod_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div>
+          <div class="param-inputs"> 
+            <div class="title">Estoque inicial
+            <p class="param-unit">Unidade:[Unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="estoque_ini_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div>
+          <div class="param-inputs">
+            <div class="title">Custo de armazenagem (estoque)
+            <p class="param-unit">Unidade:[$/unidade por trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="custo_armaz_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div>
+          <div class="param-inputs">
+            <div class="title">Capacidade produtiva inicial (produção regular)
+            <p class="param-unit">Unidade:[Unidades/trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="capac_produ_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div>
+          <div class="param-inputs">
+            <div class="title">Produção regular - custo fixo 
+              <span title="O custo fixo aumenta proporcionalmente com o acréscimo de capacidade (exemplo: X% de acréscimo, X% de aumento)" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[$/trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_fixo_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Produção regular - custo variável
+            <p class="param-unit">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_regul_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Produção em hora extra (Custo variável)
+            <p class="param-unit">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_hora_extra_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Nível máximo permitido de hora extra
+              <span title="A porcentagem selecionada é aplicada à capacidade produtiva da produção regular, resultando na quantidade máxima que pode ser planejada na produção em hora extra; não é permitida hora extra no turno extra caso este seja adotado, pois a empresa é fechada após este turno" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[%] Variável:Inteiro (%)</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="hora_extra_max_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Perda de produtividade na produção em hora extra
+              <span title="Perda aplicada à produção planejada em hora extra devido à queda na produtividade; sendo maior do que zero, a produção real em hora extra será menor do que a planejada (no entanto, o custo variável da produção em hora extra considera a produção planejada: os funcionários consumirão o tempo total planejado de hora extra, mas produzirão uma quantidade menor do que a planejada devido a esta perda)" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[%] Variável:Inteiro (%)</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="perda_produ_hora_extra_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Produção em um turno extra - custo fixo
+              <span title="Capacidade produtiva em um turno extra = 100% da capacidade produtiva em produção regular; o custo fixo aumenta proporcionalmente com o acréscimo de capacidade (exemplo: X% de acréscimo, X% de aumento); o turno extra utiliza as mesmas instalações do turno regular (produção regular), parte das quais já depreciadas, fazendo com que o seu custo fixo seja menor" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[$/trimestre] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_fixo_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Produção em um turno extra - custo variável
+            <p class="param-unit">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="produ_turno_extra_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Acréscimo de capacidade - 5.000 unidades
+              <span title="Se o dispêndio ocorre no trimestre (n), o acréscimo de capacidade é efetivado no trimestre (n+1);" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_5_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Acréscimo de capacidade - 10.000 unidades
+              <span title="Os acréscimos de capacidade produtiva que ocorrem em trimestres diferentes são acumulados;" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_10_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Acréscimo de capacidade - 15.000 unidades
+              <span title="Os acréscimos de capacidade produtiva afetam tanto a produção regular quanto a produção em um turno extra" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="acres_capac_15_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Terceirização (Custo variável)
+            <p class="param-unit">Unidade:[$/unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="terce_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Limite máximo da produção em terceirização
+            <p class="param-unit">Unidade:[Unidade] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="limit_max_produ_terce_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Capital disponível para acréscimo de capacidade
+              <span title="Quando não usado integralmente, fica rendendo a uma determinada taxa" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[$] Variável:Inteiro</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="capit_dispo_acres_capac_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Taxa de rendimento do capital disponível
+            <p class="param-unit">Unidade:[%/trimestre] Variável:Real (% com até 1 casa decimal)</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="taxa_rendi_capit_dispo_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Redução do custo variável devido ao aumento da capacidade produtiva
+              <span title="Redução percentual do custo variável (para produção regular e turno extra) a cada aumento de 3.000 unidades da capacidade produtiva" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[%/3.000 unidades] Variável:Real (% com até 1 casa decimal)</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="param-inputs">
+            <div class="title">Perda de clientes:
+              <span title="Porcentagem da demanda real não atendida em um dado trimestre que será debitada da demanda real dos trimestres seguintes (representando clientes que decidem trocar de fornecedor pelo não atendimento/atendimento parcial); as perdas que ocorrem em trimestres diferentes são acumuladas" style="cursor: help; color: var(--text3); font-size: 14px; margin-left: 4px;">ⓘ</span>
+            <p class="param-unit">Unidade:[%] Variável:Inteiro (%)</p>
+            </div>
+            <div class="form-group">
+              <label>Valor <span class="param-hint"></span></label>
+              <input type="number" id="perda_clien_valor" class="required" oninput="validarParametros()" readonly/>
+            </div>
+          </div> 
+          <div class="btn-group mt-16">
+            <button id="btn-salvar" class="btn btn-primary" onclick="salvarParametros()">💾 Salvar Parâmetros</button>
+          </div>
+        </div>
+      </div>
+
       <div id="apage-resultados" class="apage-content" style="display:none">
         <div class="page-header">
           <h1>Meus Resultados</h1>
@@ -332,7 +540,6 @@
         </div>
       </div>
 
-      <!-- ══ RANKING ══ -->
       <div id="apage-ranking" class="apage-content" style="display:none">
         <div class="page-header">
           <h1>Ranking Geral</h1>

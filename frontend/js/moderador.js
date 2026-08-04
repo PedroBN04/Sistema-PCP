@@ -229,75 +229,104 @@ async function previewDemanda() {
     ]},
     options: chartDefaults()
   });
-
-  if (d.alerta) showAlert('dem-err', `⚠️ ${d.alerta}`, 'warn');
-  else          hideAlert('dem-err');
-}
-
-const PERFIL_POR_TIPO = {
-  uniforme: PARAM_UNIF, tendencia: PARAM_TEND,
-  ciclicidade: PARAM_CICL, tend_ciclic: PARAM_TENDCICL
-};
-
-// Converte um perfil de parametros (chaves "*_valor", como PARAM_UNIF) para o
-// formato que o backend espera em parametros_modelo (chaves curtas min/max)
-function _perfilParaBackend(perfil) {
-  const out = {};
-  PARAM_IDS.forEach(prefix => {
-    const valor = perfil[`${prefix}_valor`];
-    if (valor === undefined) return;
-    const backendKey = PARAM_BACKEND_KEY[prefix];
-    out[`${backendKey}_min`] = valor;
-    out[`${backendKey}_max`] = valor;
-  });
-  return out;
-}
-
-function _travarCamposAutomatico(travar) {
-  PARAM_IDS.forEach(prefix => {
-    const el = document.getElementById(`${prefix}_valor`);
-    if (el) el.readOnly = travar;
-  });
 }
 
 async function salvarDemanda() {
-  const modo   = document.getElementById('dem-modo').value;
-  const tipo   = document.getElementById('dem-tipo').value;
-  const enfase = document.getElementById('dem-enfase').value;
-  const v      = validarDemParams();
-  if (!v.ok) { showAlert('dem-err', v.msg); return; }
-  hideAlert('dem-err');
+  const modo = document.getElementById('dem-modo').value;
+  const tipo = document.getElementById('dem-tipo').value;
+  //const v    = validarDemParams();
+  //if (!v.ok) { showAlert('dem-err', v.msg); return; }
+  //hideAlert('dem-err');
+  //const body = { tipo_demanda: tipo, modo_demanda: modo,
+  //               enfase_tend_ciclic: document.getElementById('dem-enfase').value };
+  //if (modo === 'automatico') body.params = { [tipo]: v.params };
+  //else {
+  //  const vals = [...document.querySelectorAll('.manual-val')].map(el => parseInt(el.value) || 0);
+  //  body.demanda_manual = vals;
+  //}
+  //await fetch(`${API}/moderador/config`, {
+  //  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+  //});
 
-  const body = { tipo_demanda: tipo, modo_demanda: modo, enfase_tend_ciclic: enfase };
+  const configDemanda = {
+    modo: modo,
+    tipo: tipo
+  };
+  localStorage.setItem('demandaPCP', JSON.stringify(configDemanda));
 
-  if (modo === 'automatico') {
-    body.params = { [tipo]: v.params };
-    // Melhoria 2: o perfil de parametros do modelo (preco, capacidade, custos...)
-    // associado ao tipo de demanda escolhido - exatamente como as colunas
-    // Unif/Tend/Cicl/Tend+Cicl da planilha do orientador - e salvo junto e
-    // passa a valer para o jogo (via aplicar_parametros_modelo_na_empresa)
-    const perfil = PERFIL_POR_TIPO[tipo];
-    if (perfil) body.parametros_modelo = _perfilParaBackend(perfil);
-  } else {
-    const vals = [...document.querySelectorAll('.manual-val')].map(el => parseInt(el.value) || 0);
-    body.demanda_manual = vals;
-  }
-
-  const r   = await fetch(`${API}/moderador/config`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-  });
-  const res = await r.json();
-  if (!r.ok) { showAlert('dem-err', res.erro || 'Erro ao salvar a configuracao de demanda.'); return; }
-
-  showAlert('dem-err', '✅ Configuração de demanda salva e aplicada ao jogo (inclusive os parâmetros do modelo).', 'ok');
+  alert(`✅ Configuração de demanda salva!\n\nModo : ${modo}\nTipo : ${tipo}`);
   atualizarTopbar();
+  navegarPara('parametros');
   document.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
 
-  const perfil = PERFIL_POR_TIPO[tipo];
-  if (modo === 'automatico' && perfil) preencherValoresPadrao(perfil);
-  _travarCamposAutomatico(modo === 'automatico');
+  if (modo === 'automatico') {
+    if(modo === 'automatico' && tipo =='uniforme'){
+      preencherValoresPadrao(PARAM_UNIF);
+    }
+    if(modo === 'automatico' && tipo =='tendencia'){
+      preencherValoresPadrao(PARAM_TEND);
+    }
+    if(modo === 'automatico' && tipo =='ciclicidade'){
+      preencherValoresPadrao(PARAM_CICL);
+    }
+    if(modo === 'automatico' && tipo =='tend_ciclic'){
+      preencherValoresPadrao(PARAM_TENDCICL);
+    }
+    document.getElementById('preco_venda_prod_valor').readOnly = true;
+    document.getElementById('estoque_ini_valor').readOnly = true;
+    document.getElementById('custo_armaz_valor').readOnly = true;
+    document.getElementById('capac_produ_valor').readOnly = true;
+    document.getElementById('produ_regul_custo_fixo_valor').readOnly = true;
+    document.getElementById('produ_regul_custo_varia_valor').readOnly = true;
+    document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = true;
+    document.getElementById('hora_extra_max_valor').readOnly = true;
+    document.getElementById('perda_produ_hora_extra_valor').readOnly = true;
+    document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = true;
+    document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = true;
+    document.getElementById('acres_capac_5_valor').readOnly = true;
+    document.getElementById('acres_capac_10_valor').readOnly = true;
+    document.getElementById('acres_capac_15_valor').readOnly = true;
+    document.getElementById('terce_custo_varia_valor').readOnly = true;
+    document.getElementById('limit_max_produ_terce_valor').readOnly = true;
+    document.getElementById('capit_dispo_acres_capac_valor').readOnly = true;
+    document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = true;
+    document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = true;
+    document.getElementById('perda_clien_valor').readOnly = true; 
+  } else {
+    document.getElementById('preco_venda_prod_valor').readOnly = false;
+    document.getElementById('estoque_ini_valor').readOnly = false;
+    document.getElementById('custo_armaz_valor').readOnly = false;
+    document.getElementById('capac_produ_valor').readOnly = false;
+    document.getElementById('produ_regul_custo_fixo_valor').readOnly = false;
+    document.getElementById('produ_regul_custo_varia_valor').readOnly = false;
+    document.getElementById('produ_hora_extra_custo_varia_valor').readOnly = false;
+    document.getElementById('hora_extra_max_valor').readOnly = false;
+    document.getElementById('perda_produ_hora_extra_valor').readOnly = false;
+    document.getElementById('produ_turno_extra_custo_fixo_valor').readOnly = false;
+    document.getElementById('produ_turno_extra_custo_varia_valor').readOnly = false;
+    document.getElementById('acres_capac_5_valor').readOnly = false;
+    document.getElementById('acres_capac_10_valor').readOnly = false;
+    document.getElementById('acres_capac_15_valor').readOnly = false;
+    document.getElementById('terce_custo_varia_valor').readOnly = false;
+    document.getElementById('limit_max_produ_terce_valor').readOnly = false;
+    document.getElementById('capit_dispo_acres_capac_valor').readOnly = false;
+    document.getElementById('taxa_rendi_capit_dispo_valor').readOnly = false;
+    document.getElementById('reduc_custo_varia_aumen_capac_produ_valor').readOnly = false;
+    document.getElementById('perda_clien_valor').readOnly = false;
+  }
 
-  navegarPara('parametros');
+  if(modo === 'automatico' && tipo =='uniforme'){
+    preencherValoresPadrao(PARAM_UNIF);
+  }
+  if(modo === 'automatico' && tipo =='tendencia'){
+    preencherValoresPadrao(PARAM_TEND);
+  }
+  if(modo === 'automatico' && tipo =='ciclicidade'){
+    preencherValoresPadrao(PARAM_CICL);
+  }
+  if(modo === 'automatico' && tipo =='tend_ciclic'){
+    preencherValoresPadrao(PARAM_TENDCICL);
+  }
 }
 
 // ── EMPRESA ───────────────────────────────────────────
@@ -515,7 +544,7 @@ const PARAM_DEFAULTS = {
   //Acréscimo de capacidade - 10.000 unidades:
   acres_capac_10_min: 150000, acres_capac_10_max: 500000,
   //Acréscimo de capacidade - 15.000 unidades:
-  acres_capac_15_min: 250000, acres_capac_15_max: 750000,
+  acres_capac_15_min: 250000, acres_capac_15_max: 250000,
   // Terceirização (Custo variável):
   terce_custo_varia_min: 50, terce_custo_varia_max: 200,
   //Limite máximo da produção em terceirização:
@@ -523,7 +552,7 @@ const PARAM_DEFAULTS = {
   //Capital disponível para acréscimo de capacidade:
   capit_dispo_acres_capac_min: 500000, capit_dispo_acres_capac_max: 1500000,
   //Taxa de rendimento do capital disponível:
-  taxa_rendi_capit_dispo_min: 0, taxa_rendi_capit_dispo_max: 3.5,
+  taxa_rendi_capit_dispo_min: 0, taxa_rendi_capit_dispo_max: 4,
   // Redução do custo variável devido ao aumento da capacidade produtiva:
   reduc_custo_varia_aumen_capac_produ_min: 0, reduc_custo_varia_aumen_capac_produ_max: 10,
   //Perda de clientes:
@@ -703,132 +732,117 @@ const PARAM_TENDCICL = {
   perda_clien_valor: 50, 
 };
 
-// IDs dos inputs "_valor" presentes no HTML — derivados dos próprios campos
-// de PARAM_DEFAULTS (sempre em sincronia, nada de lista solta e desatualizada)
-const PARAM_IDS = Object.keys(PARAM_DEFAULTS)
-  .filter(k => k.endsWith('_min'))
-  .map(k => k.replace(/_min$/, ''));
+// IDs dos inputs — sufixo bate com o id no HTML (p-<chave>)
+//const PARAM_IDS = Object.keys(PARAM_DEFAULTS);
 
-// Campos reais (com casas decimais) — os demais são inteiros
-const PARAM_DECIMAL = new Set(['taxa_rendi_capit_dispo', 'reduc_custo_varia_aumen_capac_produ']);
+function preencherValoresPadrao(PARAM) {
+  
+  // Pegamos a lista de nomes igual fizemos antes
+  const chaves = Object.keys(PARAM);
 
-// Ponte entre o nome do campo no HTML/JS e a chave equivalente salva no backend
-// (o backend guarda os mesmos parâmetros com nomes curtos em `parametros_modelo`)
-const PARAM_BACKEND_KEY = {
-  preco_venda_prod: 'preco', estoque_ini: 'est_ini', custo_armaz: 'armazen',
-  capac_produ: 'cap_ini', produ_regul_custo_fixo: 'reg_cf', produ_regul_custo_varia: 'reg_cv',
-  produ_hora_extra_custo_varia: 'he_cv', hora_extra_max: 'he_max', perda_produ_hora_extra: 'he_perda',
-  produ_turno_extra_custo_fixo: 'te_cf', produ_turno_extra_custo_varia: 'te_cv',
-  capit_dispo_acres_capac: 'capital', taxa_rendi_capit_dispo: 'taxa',
-  reduc_custo_varia_aumen_capac_produ: 'redcv', terce_custo_varia: 'terc_cv',
-  limit_max_produ_terce: 'terc_lim', perda_clien: 'perda_cli'
-};
+  // Fazemos um "loop" (forEach) para passar por cada nome da lista
+  chaves.forEach(chave => {
+    
+    // O JavaScript procura no HTML um elemento que tenha o ID igual ao nome da chave
+    const inputNoHtml = document.getElementById(chave);
 
-function preencherValoresPadrao(perfilValores) {
-  PARAM_IDS.forEach(prefix => {
-    const min = document.getElementById(`${prefix}_min`);
-    const max = document.getElementById(`${prefix}_max`);
-    if (min) min.value = PARAM_DEFAULTS[`${prefix}_min`];
-    if (max) max.value = PARAM_DEFAULTS[`${prefix}_max`];
-    if (perfilValores) {
-      const el = document.getElementById(`${prefix}_valor`);
-      const chave = `${prefix}_valor`;
-      if (el && perfilValores[chave] !== undefined) {
-        el.value = perfilValores[chave];
-        validarParametro(el);
-      }
+    // Se ele achar esse input na tela...
+    if (inputNoHtml) {
+      // 1. Atualiza o placeholder (texto cinza de fundo)
+      inputNoHtml.placeholder = PARAM[chave];
+      
+      // 2. BÔNUS: Como seu campo é "readonly", é ideal definir o 'value' também, 
+      // para que o número seja o valor real do campo e não apenas um fundo invisível.
+      inputNoHtml.value = PARAM[chave]; 
     }
+    
   });
 }
+// 1. Criamos a função que vai fazer essa atualização
+
+// 2. Executamos a função assim que a tela for carregada
+
 
 async function carregarParametros() {
-  preencherValoresPadrao();
+  //ocument.getElementById('info-demanda-salva').innerHTML = `(Modo: ${modo} | Tipo: ${tipo})`;
+  // 2. Executamos a função assim que a tela for carregada
+  preencherValoresPadrao(PARAM_DEFAULTS);
   const cfg = await fetch(`${API}/moderador/config`).then(r => r.json());
   const p   = cfg.parametros_modelo || {};
-  PARAM_IDS.forEach(prefix => {
-    const backendKey = PARAM_BACKEND_KEY[prefix];
-    const el = document.getElementById(`${prefix}_valor`);
-    if (!el) return;
-    const salvo = p[`${backendKey}_min`]; // moderador guarda um único valor (min=max) por parâmetro
-    el.value = (salvo !== undefined) ? salvo : PARAM_UNIF[`${prefix}_valor`];
-    validarParametro(el);
+  PARAM_IDS.forEach(k => {
+    const el = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+    if (el) el.value = (p[k] !== undefined) ? p[k] : PARAM_DEFAULTS[k];
   });
 }
 
-// ── VALIDAÇÃO EM TEMPO REAL ───────────────────────────
-// Chamada a cada tecla digitada (oninput) em qualquer campo "_valor";
-// nunca deixa o navegador aceitar/salvar um valor fora do intervalo Mín/Máx.
-function validarParametro(el) {
-  const prefix   = el.id.replace(/_valor$/, '');
-  const min      = parseFloat(document.getElementById(`${prefix}_min`)?.value);
-  const max      = parseFloat(document.getElementById(`${prefix}_max`)?.value);
-  const errEl    = document.getElementById(`err-${prefix}_valor`);
-  const valor    = el.value.trim() === '' ? NaN : parseFloat(el.value);
+//function _coletarParametros() {
+//  const out = {};
+//  PARAM_IDS.forEach(k => {
+//    const el  = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+//    if (!el) return;
+    // campos reais (taxa e redcv) → parseFloat; demais → parseInt
+//    out[k] = (k.startsWith('taxa') || k.startsWith('redcv'))
+//      ? parseFloat(el.value)
+//      : parseInt(el.value);
+//  });
+//  return out;
+//}
 
-  let msg = '';
-  if (el.value.trim() === '')          msg = 'Obrigatório';
-  else if (isNaN(valor))                msg = 'Digite um número válido';
-  else if (valor < min)                 msg = `Mínimo permitido: ${fmt(min)}`;
-  else if (valor > max)                 msg = `Máximo permitido: ${fmt(max)}`;
+function validarParametros() {
+  const form    = document.getElementById('parametros');
+  const valor   = document.querySelectorAll('.required');
+  const min     = document.querySelectorAll('.requiredmin');
+  const max     = document.querySelectorAll('.requiredmax');
 
-  el.classList.toggle('invalid', !!msg);
-  el.classList.toggle('valid', !msg && el.value.trim() !== '');
-  if (errEl) errEl.textContent = msg;
-
-  atualizarBotaoSalvarParametros();
-  return !msg;
-}
-
-function _todosParametrosValidos() {
-  return PARAM_IDS.every(prefix => {
-    const el = document.getElementById(`${prefix}_valor`);
-    return el && validarParametro(el);
-  });
-}
-
-function atualizarBotaoSalvarParametros() {
-  const btn = document.getElementById('btn-salvar-parametros');
-  if (!btn) return;
-  const valido = PARAM_IDS.every(prefix => {
-    const el = document.getElementById(`${prefix}_valor`);
-    return el && !el.classList.contains('invalid');
-  });
-  btn.disabled = !valido;
-  btn.title = valido ? '' : 'Corrija os campos destacados em vermelho antes de salvar';
-}
-
-function _coletarParametros() {
-  const out = {};
-  PARAM_IDS.forEach(prefix => {
-    const el = document.getElementById(`${prefix}_valor`);
-    if (!el) return;
-    const backendKey = PARAM_BACKEND_KEY[prefix];
-    const valor = PARAM_DECIMAL.has(prefix) ? parseFloat(el.value) : parseInt(el.value);
-    out[backendKey] = { [`${backendKey}_min`]: valor, [`${backendKey}_max`]: valor };
-  });
-  return out;
-}
-
-async function salvarParametros() {
-  if (!_todosParametrosValidos()) {
-    showAlert('param-err', '❌ Existem campos fora do intervalo permitido. Corrija-os antes de salvar.', 'err');
-    return;
+  for (let i = 0; i < valor.length; i++) {
+    if (valor[i].value === '') {
+      valor[i].style.border = '';
+    } else {
+      if(parseInt(valor[i].value) <= parseInt(min[i].value)){
+        valor[i].style.border = '1px solid #e63636';
+      }if(parseInt(valor[i].value) >= parseInt(max[i].value) ){
+        valor[i].style.border = '1px solid #e63636';
+      }if(parseInt(valor[i].value) >= parseInt(min[i].value) && parseInt(valor[i].value) <= parseInt(max[i].value)){
+        valor[i].style.border = '1px solid #5fe636';
+      }
+    }
   }
-  const porParam = _coletarParametros();
-  const parametros_modelo = Object.assign({}, ...Object.values(porParam));
-
-  await fetch(`${API}/moderador/config`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ parametros_modelo })
-  });
-  showAlert('param-ok', '✅ Parâmetros salvos e aplicados ao jogo (capacidade produtiva e custos usados no cálculo de cada rodada).', 'ok');
 }
+
+function salvarParametros() {
+  const valor = document.querySelectorAll('.required');
+  let possuiErro = false;
+  const parametrosSalvos = {};
+
+  // Verifica se há algum erro (borda vermelha)
+  for (let i = 0; i < valor.length; i++) {
+    if (valor[i].style.border.includes('e63636') || valor[i].style.border.includes('rgb(230, 54, 54)')) {
+      possuiErro = true;
+      break;
+    }
+  }
+
+  if (possuiErro) {
+    alert('Existem parâmetros com valores inválidos. Verifique os campos em vermelho.');
+  } else {
+    // Coleta as IDs e os valores digitados
+    for (let i = 0; i < valor.length; i++) {
+      parametrosSalvos[valor[i].id] = valor[i].value;
+    }
+
+    // Salva na memória do navegador (Storage) como texto
+    localStorage.setItem('parametrosPCP', JSON.stringify(parametrosSalvos));
+    
+    alert('Salvo!');
+  }
+}
+
 
 function resetarParametros() {
   if (!confirm('Restaurar todos os parâmetros para os valores padrão?')) return;
-  PARAM_IDS.forEach(prefix => {
-    const el = document.getElementById(`${prefix}_valor`);
-    if (el) { el.value = PARAM_UNIF[`${prefix}_valor`]; validarParametro(el); }
+  PARAM_IDS.forEach(k => {
+    const el = document.getElementById(`p-${k.replace(/_/g, '-')}`);
+    if (el) el.value = PARAM_DEFAULTS[k];
   });
   showAlert('param-ok', 'ℹ️ Padrões restaurados — clique em Salvar para confirmar.', 'ok');
 }

@@ -12,7 +12,13 @@
 
 /* ── PARÂMETROS DO MODELO ── */
 .param-grid  { display: flex; flex-direction: column; gap: 0; }
+.param-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; padding: 10px 0; }
+.param-label { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.param-name  { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.param-unit  { font-size: 11px; color: var(--text3); font-style: italic; }
 .param-obs   { font-size: 11px; color: var(--text3); grid-column: 1 / -1; padding-bottom: 2px; }
+.param-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+.param-hint  { font-size: 11px; color: var(--text3); font-weight: 400; text-transform: none; }
 .title {display: block; font-size: 14px; font-weight: 600; color: var(--text2);
                text-transform: uppercase; letter-spacing: .06em; margin: 30px 2px 2px 2px; }
 .mb-16 { margin-bottom: 16px; }
@@ -94,10 +100,7 @@
       <div class="logo-badge">PCP</div>
       <div><div class="logo-name">PCP Simulador</div><div class="logo-sub">Painel do Moderador</div></div>
     </a>
-    <div style="display:flex; align-items:center; gap:10px;">
-      <a href="/alunos" class="btn btn-ghost" style="font-size:12px; padding:6px 12px;">👥 Ver como equipe</a>
-      <div id="topbar-status" class="topbar-pill">—</div>
-    </div>
+    <div id="topbar-status" class="topbar-pill">—</div>
   </div>
 </nav>
 
@@ -304,23 +307,22 @@
         <div class="alert alert-err" id="param-err" style="display:none"></div>
         <div class="alert alert-ok"  id="param-ok"  style="display:none"></div>
         <!-- ── CARD 1: Produto, Estoque, Armazenagem ── -->
-        <div class="card mb-16">
+        <div class="card mb-16" id="parametros">
           <div class="param-inputs">
             <div class="title">Preço de venda do produto
             <p class="param-unit mb-16">Unidade:[$/unidade] Variável:Inteiro</p>
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="preco_venda_prod_min" readonly/>
+              <input type="number" id="preco_venda_prod_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="preco_venda_prod_max" readonly/>
+              <input type="number" id="preco_venda_prod_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="preco_venda_prod_valor"  oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-preco_venda_prod_valor"></small>
+              <input type="number" id="preco_venda_prod_valor" class="required" oninput="validarParametros()"/>
             </div>
           </div>
           <!-- Estoque Inicial -->
@@ -330,16 +332,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="estoque_ini_min" readonly/>
+              <input type="number" id="estoque_ini_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="estoque_ini_max" readonly/>
+              <input type="number" id="estoque_ini_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="estoque_ini_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-estoque_ini_valor"></small>
+              <input type="number" id="estoque_ini_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div>
           <!-- Custo de Armazenagem -->
@@ -349,16 +350,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="custo_armaz_min" readonly/>
+              <input type="number" id="custo_armaz_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="custo_armaz_max" readonly/>
+              <input type="number" id="custo_armaz_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="custo_armaz_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-custo_armaz_valor"></small>
+              <input type="number" id="custo_armaz_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div>
           <!-- Capacidade produtiva inicial (produção regular) -->
@@ -368,16 +368,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="capac_produ_min" readonly/>
+              <input type="number" id="capac_produ_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="capac_produ_max" readonly/>
+              <input type="number" id="capac_produ_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="capac_produ_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-capac_produ_valor"></small>
+              <input type="number" id="capac_produ_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div>
           <!-- Produção regular - custo fixo: -->
@@ -388,16 +387,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="produ_regul_custo_fixo_min" readonly/>
+              <input type="number" id="produ_regul_custo_fixo_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="produ_regul_custo_fixo_max" readonly/>
+              <input type="number" id="produ_regul_custo_fixo_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="produ_regul_custo_fixo_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-produ_regul_custo_fixo_valor"></small>
+              <input type="number" id="produ_regul_custo_fixo_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Produção regular - custo variável: -->
@@ -407,16 +405,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="produ_regul_custo_varia_min" readonly/>
+              <input type="number" id="produ_regul_custo_varia_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="produ_regul_custo_varia_max" readonly/>
+              <input type="number" id="produ_regul_custo_varia_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="produ_regul_custo_varia_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-produ_regul_custo_varia_valor"></small>
+              <input type="number" id="produ_regul_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Produção em hora extra (Custo variável): -->
@@ -426,16 +423,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="produ_hora_extra_custo_varia_min" readonly/>
+              <input type="number" id="produ_hora_extra_custo_varia_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="produ_hora_extra_custo_varia_max" readonly/>
+              <input type="number" id="produ_hora_extra_custo_varia_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="produ_hora_extra_custo_varia_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-produ_hora_extra_custo_varia_valor"></small>
+              <input type="number" id="produ_hora_extra_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Nível máximo permitido de hora extra: -->
@@ -446,16 +442,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="hora_extra_max_min" readonly/>
+              <input type="number" id="hora_extra_max_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="hora_extra_max_max" readonly/>
+              <input type="number" id="hora_extra_max_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="hora_extra_max_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-hora_extra_max_valor"></small>
+              <input type="number" id="hora_extra_max_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Perda de produtividade na produção em hora extra: -->
@@ -466,16 +461,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="perda_produ_hora_extra_min" readonly/>
+              <input type="number" id="perda_produ_hora_extra_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="perda_produ_hora_extra_max" readonly/>
+              <input type="number" id="perda_produ_hora_extra_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="perda_produ_hora_extra_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-perda_produ_hora_extra_valor"></small>
+              <input type="number" id="perda_produ_hora_extra_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Produção em um turno extra - custo fixo -->
@@ -486,16 +480,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="produ_turno_extra_custo_fixo_min" readonly/>
+              <input type="number" id="produ_turno_extra_custo_fixo_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="produ_turno_extra_custo_fixo_max" readonly/>
+              <input type="number" id="produ_turno_extra_custo_fixo_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="produ_turno_extra_custo_fixo_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-produ_turno_extra_custo_fixo_valor"></small>
+              <input type="number" id="produ_turno_extra_custo_fixo_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Produção em um turno extra - custo variável -->
@@ -505,16 +498,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="produ_turno_extra_custo_varia_min" readonly/>
+              <input type="number" id="produ_turno_extra_custo_varia_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="produ_turno_extra_custo_varia_max" readonly/>
+              <input type="number" id="produ_turno_extra_custo_varia_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="produ_turno_extra_custo_varia_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-produ_turno_extra_custo_varia_valor"></small>
+              <input type="number" id="produ_turno_extra_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Acréscimo de capacidade - 5.000 unidades: -->
@@ -525,16 +517,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_5_min" readonly/>
+              <input type="number" id="acres_capac_5_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_5_max" readonly/>
+              <input type="number" id="acres_capac_5_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_5_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-acres_capac_5_valor"></small>
+              <input type="number" id="acres_capac_5_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Acréscimo de capacidade - 10.000 unidades: -->
@@ -545,16 +536,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_10_min" readonly/>
+              <input type="number" id="acres_capac_10_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_10_max" readonly/>
+              <input type="number" id="acres_capac_10_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_10_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-acres_capac_10_valor"></small>
+              <input type="number" id="acres_capac_10_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Acréscimo de capacidade - 15.000 unidades: -->
@@ -565,16 +555,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_15_min" readonly/>
+              <input type="number" id="acres_capac_15_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_15_max" readonly/>
+              <input type="number" id="acres_capac_15_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="acres_capac_15_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-acres_capac_15_valor"></small>
+              <input type="number" id="acres_capac_15_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Terceirização (Custo variável): -->
@@ -584,16 +573,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="terce_custo_varia_min" readonly/>
+              <input type="number" id="terce_custo_varia_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="terce_custo_varia_max" readonly/>
+              <input type="number" id="terce_custo_varia_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="terce_custo_varia_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-terce_custo_varia_valor"></small>
+              <input type="number" id="terce_custo_varia_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Limite máximo da produção em terceirização: -->
@@ -603,16 +591,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="limit_max_produ_terce_min" readonly/>
+              <input type="number" id="limit_max_produ_terce_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="limit_max_produ_terce_max" readonly/>
+              <input type="number" id="limit_max_produ_terce_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="limit_max_produ_terce_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-limit_max_produ_terce_valor"></small>
+              <input type="number" id="limit_max_produ_terce_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Capital disponível para acréscimo de capacidade: -->
@@ -623,16 +610,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="capit_dispo_acres_capac_min" readonly/>
+              <input type="number" id="capit_dispo_acres_capac_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="capit_dispo_acres_capac_max" readonly/>
+              <input type="number" id="capit_dispo_acres_capac_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="capit_dispo_acres_capac_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-capit_dispo_acres_capac_valor"></small>
+              <input type="number" id="capit_dispo_acres_capac_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Taxa de rendimento do capital disponível: -->
@@ -642,16 +628,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="taxa_rendi_capit_dispo_min" readonly/>
+              <input type="number" id="taxa_rendi_capit_dispo_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="taxa_rendi_capit_dispo_max" readonly/>
+              <input type="number" id="taxa_rendi_capit_dispo_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="taxa_rendi_capit_dispo_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-taxa_rendi_capit_dispo_valor"></small>
+              <input type="number" id="taxa_rendi_capit_dispo_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Redução do custo variável devido ao aumento da capacidade produtiva -->
@@ -662,16 +647,15 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="reduc_custo_varia_aumen_capac_produ_min" readonly/>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="reduc_custo_varia_aumen_capac_produ_max" readonly/>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="reduc_custo_varia_aumen_capac_produ_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-reduc_custo_varia_aumen_capac_produ_valor"></small>
+              <input type="number" id="reduc_custo_varia_aumen_capac_produ_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Perda de clientes: -->
@@ -682,22 +666,21 @@
             </div>
             <div class="form-group">
               <label>Mínimo <span class="param-hint"></span></label>
-              <input type="number" id="perda_clien_min" readonly/>
+              <input type="number" id="perda_clien_min" class="requiredmin" readonly/>
             </div>
             <div class="form-group">
               <label>Máximo <span class="param-hint"></span></label>
-              <input type="number" id="perda_clien_max" readonly/>
+              <input type="number" id="perda_clien_max" class="requiredmax" readonly/>
             </div>
             <div class="form-group">
               <label>Valor <span class="param-hint"></span></label>
-              <input type="number" id="perda_clien_valor" oninput="validarParametro(this)"/>
-              <small class="field-error" id="err-perda_clien_valor"></small>
+              <input type="number" id="perda_clien_valor" class="required" oninput="validarParametros()" readonly/>
             </div>
           </div> 
           <!-- Botão Salvar -->
           <div class="btn-group mt-16">
-            <button class="btn btn-primary" id="btn-salvar-parametros" onclick="salvarParametros()">💾 Salvar Parâmetros</button>
-            <button class="btn btn-ghost"   onclick="resetarParametros()">↩ Restaurar Padrões</button>
+            <button id="btn-salvar" class="btn btn-primary" onclick="salvarParametros()">💾 Salvar Parâmetros</button>
+            <!--<button class="btn btn-ghost"   onclick="resetarParametros()">↩ Restaurar Padrões</button>-->
           </div>
         </div>
       </div>
